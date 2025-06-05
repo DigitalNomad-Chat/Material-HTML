@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Material HTML 在线美化预览工具</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/theme/eclipse.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/lint/lint.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/fold/foldgutter.min.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/edit/closetag.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/edit/closebrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/lint/lint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/lint/html-lint.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/lint/css-lint.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/lint/javascript-lint.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/fold/foldcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/fold/foldgutter.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/fold/brace-fold.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/fold/xml-fold.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/addon/fold/comment-fold.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jshint/2.13.6/jshint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/csslint/1.0.5/csslint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/htmlhint/1.1.4/htmlhint.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify-html.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify-css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body>
+    <div class="app-bar">
+        <span class="app-title">Material HTML 编辑器</span>
+    </div>
+    <div class="container">
+        <div class="editor-pane" id="editorPane">
+            <div class="editor-section html-section" id="htmlSection">
+                <div class="editor-label">
+                    <span>HTML</span>
+                    <div>
+                        <button class="beautify-btn material-button" onclick="beautifyHTML()">美化</button>
+                        <button class="toggle-btn material-button icon-button" data-target="html-editor-container" data-editor="htmlEditor" data-section="htmlSection">
+                            <i class="material-icons">expand_less</i>
+                        </button>
+                    </div>
+                </div>
+                <div id="html-editor-container" class="codemirror-container"></div>
+            </div>
+
+            <div class="splitter-horizontal" id="splitter1"></div>
+
+            <div class="editor-section css-section collapsed-section" id="cssSection">
+                <div class="editor-label">
+                    <span>CSS</span>
+                    <div>
+                        <button class="beautify-btn material-button" onclick="beautifyCSS()">美化</button>
+                        <button class="toggle-btn material-button icon-button" data-target="css-editor-container" data-editor="cssEditor" data-section="cssSection">
+                            <i class="material-icons">expand_more</i>
+                        </button>
+                    </div>
+                </div>
+                <div id="css-editor-container" class="codemirror-container collapsed"></div>
+            </div>
+
+            <div class="splitter-horizontal" id="splitter2"></div>
+
+            <div class="editor-section js-section collapsed-section" id="jsSection">
+                <div class="editor-label">
+                    <span>JavaScript</span>
+                    <div>
+                        <button class="beautify-btn material-button" onclick="beautifyJS()">美化</button>
+                        <button class="toggle-btn material-button icon-button" data-target="js-editor-container" data-editor="jsEditor" data-section="jsSection">
+                            <i class="material-icons">expand_more</i>
+                        </button>
+                    </div>
+                </div>
+                <div id="js-editor-container" class="codemirror-container collapsed"></div>
+            </div>
+        </div>
+        <div class="preview-pane">
+            <iframe id="preview-frame" title="Preview"></iframe>
+        </div>
+    </div>
+    <div class="controls">
+        <button class="material-button" onclick="loadExampleCode()">示例源代码</button>
+        <button class="material-button raised" onclick="downloadCode('html')">下载HTML</button>
+        <button class="material-button raised" onclick="downloadCode('css')">下载CSS</button>
+        <button class="material-button raised" onclick="downloadCode('js')">下载JS</button>
+        <button class="material-button raised primary" onclick="downloadAllCode()">下载全部 (ZIP)</button>
+        <button class="material-button raised primary" onclick="openScalePreviewModal()">下载预览图</button>
+    </div>
+
+    <div id="scalePreviewModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>预览图缩放与下载</h2>
+                <button class="material-button icon-button modal-close-btn" onclick="closeScalePreviewModal()" title="关闭">
+                    <i class="material-icons">close</i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="scale-selector">
+                    <label for="modalPreviewScaleRange">选择缩放比例: <output id="modalScaleOutput">2.0</output>x</label>
+                    <input type="range" id="modalPreviewScaleRange" value="2" min="1" max="5" step="0.1" oninput="updateScaleOutput(this.value)" onchange="renderModalPreview(this.value)">
+                </div>
+                <div class="background-selector">
+                    <label for="transparentBgCheckbox">
+                        <input type="checkbox" id="transparentBgCheckbox" onchange="renderModalPreview(document.getElementById('modalPreviewScaleRange').value)">
+                        使用透明背景下载
+                    </label>
+                </div>
+                <div class="modal-preview-area-wrapper">
+                    <div class="modal-preview-area">
+                        <canvas id="modalCanvasPreview"></canvas>
+                        <div class="loading-indicator" style="display: none;">正在生成预览...</div>
+                    </div>
+                    <div class="preview-dimensions">
+                        预览显示尺寸: <span id="currentPreviewSize">---</span><br>
+                        最终下载尺寸: <span id="downloadImageSize">---</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="material-button" onclick="closeScalePreviewModal()">取消</button>
+                <button class="material-button raised primary" onclick="downloadScaledImageFromModal()">确认下载</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
