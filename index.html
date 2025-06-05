@@ -48,6 +48,17 @@
     </div>
     <div class="container">
         <div class="editor-pane" id="editorPane">
+            <div class="pane-header">
+                <span>编辑区</span>
+                <div class="pane-actions">
+                    <button id="toggleAllSectionsBtn" class="material-button icon-button" title="折叠/展开所有代码区">
+                        <i class="material-icons">unfold_less</i>
+                    </button>
+                    <button class="toggle-pane-btn material-button icon-button" data-target="editorPane" title="隐藏编辑区">
+                        <i class="material-icons">chevron_left</i>
+                    </button>
+                </div>
+            </div>
             <div class="editor-section html-section" id="htmlSection">
                 <div class="editor-label">
                     <span>HTML</span>
@@ -91,7 +102,13 @@
                 <div id="js-editor-container" class="codemirror-container collapsed"></div>
             </div>
         </div>
-        <div class="preview-pane">
+        
+        <div class="splitter-vertical" id="verticalSplitter"></div>
+        
+        <div class="preview-pane" id="previewPane">
+            <div class="pane-header">
+                <span>预览区</span>
+            </div>
             <iframe id="preview-frame" title="Preview"></iframe>
         </div>
     </div>

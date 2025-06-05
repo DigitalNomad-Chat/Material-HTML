@@ -23,7 +23,11 @@
     --shadow-elevation-8dp: 0 8px 10px 1px rgba(0,0,0,0.14), 0 3px 14px 2px rgba(0,0,0,0.12), 0 5px 5px -3px rgba(0,0,0,0.20);
     
     --splitter-height: 6px;
+    --splitter-width: 6px;
     --editor-label-height: 48px;
+    --pane-header-height: 40px;
+    --pane-collapsed-width: 40px;
+    --pane-transition-duration: 0.3s;
 }
 
 body {
@@ -37,6 +41,22 @@ body {
     font-size: 14px;
     line-height: 1.5;
     overflow: hidden;
+}
+
+/* 添加拖动状态样式 */
+body.resizing {
+    cursor: ew-resize !important;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+body.resizing * {
+    cursor: ew-resize !important;
+    pointer-events: none;
+}
+
+body.resizing .splitter-vertical {
+    pointer-events: auto;
 }
 
 .app-bar {
@@ -69,6 +89,112 @@ body {
     background-color: var(--surface-color);
     border-right: 1px solid var(--google-grey-300);
     overflow: hidden;
+    transition: width var(--pane-transition-duration) ease;
+    position: relative;
+    will-change: width;
+}
+
+.preview-pane {
+    display: flex;
+    flex-direction: column;
+    width: 50%;
+    background-color: var(--surface-color);
+    overflow: hidden;
+    transition: width var(--pane-transition-duration) ease;
+    position: relative;
+    will-change: width;
+}
+
+/* Pane Header Styles */
+.pane-header {
+    height: var(--pane-header-height);
+    background-color: var(--google-grey-200);
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    font-weight: 500;
+    color: var(--google-grey-700);
+    border-bottom: 1px solid var(--google-grey-300);
+    flex-shrink: 0;
+    z-index: 10;
+}
+
+.editor-pane .pane-header {
+    justify-content: space-between;
+}
+
+.pane-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.preview-pane .pane-header {
+    justify-content: flex-start;
+    padding-left: 16px;
+}
+
+/* Collapsed Panes - 只保留编辑区的折叠样式 */
+.editor-pane.collapsed {
+    width: var(--pane-collapsed-width) !important;
+    min-width: var(--pane-collapsed-width);
+    overflow: hidden;
+}
+
+.editor-pane.collapsed .editor-section,
+.editor-pane.collapsed .splitter-horizontal {
+    display: none;
+}
+
+.editor-pane.collapsed .pane-header span,
+.editor-pane.collapsed .pane-header .pane-actions #toggleAllSectionsBtn {
+    display: none;
+}
+
+.editor-pane.collapsed .toggle-pane-btn .material-icons {
+    transform: rotate(180deg);
+}
+
+/* 移除预览区折叠相关代码 */
+.preview-pane.collapsed {
+    display: none; /* 不再使用，但保留以防止错误 */
+}
+
+/* Vertical Splitter */
+.splitter-vertical {
+    width: var(--splitter-width);
+    background-color: var(--google-grey-200);
+    cursor: ew-resize;
+    flex-shrink: 0;
+    border-left: 1px solid var(--google-grey-300);
+    border-right: 1px solid var(--google-grey-300);
+    z-index: 10;
+    transition: background-color 0.2s ease;
+    position: relative;
+    will-change: transform;
+}
+
+.splitter-vertical:hover,
+.splitter-vertical.active {
+    background-color: var(--google-blue);
+    border-color: var(--google-blue);
+}
+
+.splitter-vertical::after {
+    content: "⋮";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--google-grey-500);
+    font-size: 14px;
+    line-height: 1;
+    transition: color 0.2s ease;
+}
+
+.splitter-vertical:hover::after,
+.splitter-vertical.active::after {
+    color: white;
 }
 
 .editor-section {
@@ -133,16 +259,10 @@ body {
     border-bottom: 1px solid var(--google-grey-300);
     z-index: 10;
     transition: background-color 0.2s ease;
+    will-change: transform;
 }
 .splitter-horizontal:hover {
     background-color: var(--google-grey-300);
-}
-
-
-.preview-pane {
-    width: 50%;
-    display: flex;
-    background-color: var(--surface-color);
 }
 
 #preview-frame {
@@ -150,6 +270,11 @@ body {
     height: 100%;
     border: none;
     background-color: white;
+    flex-grow: 1;
+}
+
+.toggle-pane-btn {
+    transition: transform 0.3s ease;
 }
 
 .controls {
@@ -226,6 +351,19 @@ body {
     background-color: rgba(26,115,232,0.1);
 }
 
+/* 添加拖动时的性能优化样式 */
+.resizing .editor-pane,
+.resizing .preview-pane {
+    transition: none !important;
+}
+
+.resizing .CodeMirror {
+    pointer-events: none;
+}
+
+.resizing iframe {
+    pointer-events: none;
+}
 
 /* CodeMirror Theme Adjustments (using 'eclipse' theme) */
 .CodeMirror {
@@ -448,12 +586,20 @@ body {
         flex-direction: column;
     }
     .editor-pane, .preview-pane {
-        width: 100%;
+        width: 100% !important;
         height: 50%;
         border-right: none;
     }
     .editor-pane {
         border-bottom: 1px solid var(--google-grey-300);
+    }
+    .splitter-vertical {
+        display: none;
+    }
+    .editor-pane.collapsed, .preview-pane.collapsed {
+        height: var(--pane-header-height) !important;
+        min-height: var(--pane-header-height);
+        width: 100% !important;
     }
 }
 @media (max-width: 600px) {
@@ -467,7 +613,7 @@ body {
     .material-button.icon-button .material-icons { font-size: 18px; }
     .editor-label { height: 40px; padding: 0 12px; font-size: 12px; }
     .editor-label .material-button { height: 28px; font-size: 11px; padding: 0 8px; }
-    :root { --editor-label-height: 40px; }
+    :root { --editor-label-height: 40px; --pane-header-height: 36px; }
     .editor-section.section-collapsed { min-height: var(--editor-label-height); }
 
     .modal-content { max-width: calc(100vw - 32px); max-height: calc(100vh - 32px); }

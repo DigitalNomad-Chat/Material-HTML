@@ -2,6 +2,18 @@
 
 let htmlEditor, cssEditor, jsEditor;
 
+// Store layout preferences
+let layoutPreferences = {
+    editorWidth: 50, // percentage
+    previewWidth: 50, // percentage
+    editorCollapsed: false
+};
+
+// 添加拖动状态变量
+let isDragging = false;
+let lastRenderTime = 0;
+const RENDER_THROTTLE = 16; // 约60fps
+
 const DEFAULT_HTML = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -102,6 +114,9 @@ function debounce(func, delay) {
 }
 
 function initializeEditors() {
+    // Load layout preferences
+    loadLayoutPreferences();
+
     const commonOptions = {
         lineNumbers: true,
         theme: "eclipse",
@@ -151,6 +166,9 @@ function initializeEditors() {
 
     setupCollapsibleSections();
     setupResizablePanes(); // Call after collapsible sections are set up
+    setupVerticalSplitter();
+    setupPaneToggleButtons();
+    applyLayoutPreferences(); // Apply saved layout
 }
 
 const previewFrame = document.getElementById('preview-frame');
@@ -336,6 +354,63 @@ function setupCollapsibleSections() {
             setupResizablePanes(true);
         });
     });
+    
+    // 设置全部折叠/展开按钮
+    const toggleAllBtn = document.getElementById('toggleAllSectionsBtn');
+    if (toggleAllBtn) {
+        toggleAllBtn.addEventListener('click', toggleAllSections);
+    }
+}
+
+// 添加全部折叠/展开功能
+function toggleAllSections() {
+    const sections = document.querySelectorAll('.editor-section');
+    const toggleAllBtn = document.getElementById('toggleAllSectionsBtn');
+    const iconElement = toggleAllBtn.querySelector('.material-icons');
+    
+    // 检查当前状态：如果大多数区域已折叠，则全部展开；否则全部折叠
+    const collapsedCount = Array.from(sections).filter(s => s.classList.contains('section-collapsed')).length;
+    const shouldExpand = collapsedCount >= sections.length / 2;
+    
+    // 更新按钮图标
+    if (shouldExpand) {
+        iconElement.textContent = 'unfold_more';
+        toggleAllBtn.setAttribute('title', '展开所有代码区');
+    } else {
+        iconElement.textContent = 'unfold_less';
+        toggleAllBtn.setAttribute('title', '折叠所有代码区');
+    }
+    
+    // 应用到所有区域
+    sections.forEach(section => {
+        const sectionId = section.id;
+        const toggleBtn = section.querySelector('.toggle-btn');
+        const targetId = toggleBtn.dataset.target;
+        const targetContainer = document.getElementById(targetId);
+        const editorName = toggleBtn.dataset.editor;
+        
+        // 仅当当前状态与目标状态不同时才进行切换
+        const isCurrentlyCollapsed = section.classList.contains('section-collapsed');
+        if (isCurrentlyCollapsed === shouldExpand) {
+            // 更新容器和区域状态
+            targetContainer.classList.toggle('collapsed', !shouldExpand);
+            section.classList.toggle('section-collapsed', !shouldExpand);
+            
+            // 更新按钮状态
+            const btnIcon = toggleBtn.querySelector('.material-icons');
+            btnIcon.textContent = !shouldExpand ? 'expand_more' : 'expand_less';
+            if (!shouldExpand) btnIcon.classList.remove('rotate-icon');
+            else btnIcon.classList.add('rotate-icon');
+            
+            // 如果是展开，刷新编辑器
+            if (shouldExpand && window[editorName]) {
+                setTimeout(() => { window[editorName].refresh(); }, 260);
+            }
+        }
+    });
+    
+    // 重新调整面板大小
+    setupResizablePanes(true);
 }
 
 function setupResizablePanes(forceRedistribute = false) {
@@ -631,6 +706,295 @@ function beautifyHTML() { if (typeof html_beautify !== 'undefined' && htmlEditor
 function beautifyCSS() { if (typeof css_beautify !== 'undefined' && cssEditor) { cssEditor.setValue(css_beautify(cssEditor.getValue(), { indent_size: 2 })); } else { alert('CSS美化库或编辑器未加载！'); }}
 function beautifyJS() { if (typeof js_beautify !== 'undefined' && jsEditor) { jsEditor.setValue(js_beautify(jsEditor.getValue(), { indent_size: 2, space_in_empty_paren: true })); } else { alert('JavaScript美化库或编辑器未加载！'); }}
 
+function loadLayoutPreferences() {
+    const savedLayout = localStorage.getItem('layoutPreferences');
+    if (savedLayout) {
+        try {
+            const parsed = JSON.parse(savedLayout);
+            layoutPreferences = {
+                ...layoutPreferences, // Default values
+                ...parsed // Override with saved values
+            };
+        } catch (e) {
+            console.error('Error parsing saved layout preferences:', e);
+        }
+    }
+}
+
+function saveLayoutPreferences() {
+    localStorage.setItem('layoutPreferences', JSON.stringify(layoutPreferences));
+}
+
+function applyLayoutPreferences() {
+    const container = document.querySelector('.container');
+    const editorPane = document.getElementById('editorPane');
+    const previewPane = document.getElementById('previewPane');
+    
+    // 不在移动视图下应用
+    if (window.innerWidth <= 900) return;
+    
+    // 应用折叠状态 - 只应用到编辑区
+    if (layoutPreferences.editorCollapsed) {
+        editorPane.classList.add('collapsed');
+        
+        // 更新按钮图标
+        const toggleBtn = editorPane.querySelector('.toggle-pane-btn');
+        if (toggleBtn) {
+            const iconElement = toggleBtn.querySelector('.material-icons');
+            if (iconElement) {
+                iconElement.textContent = 'chevron_right';
+            }
+        }
+        
+        // 预览区占据剩余空间
+        previewPane.style.width = `calc(100% - var(--pane-collapsed-width))`;
+    } else {
+        editorPane.classList.remove('collapsed');
+        
+        // 更新按钮图标
+        const toggleBtn = editorPane.querySelector('.toggle-pane-btn');
+        if (toggleBtn) {
+            const iconElement = toggleBtn.querySelector('.material-icons');
+            if (iconElement) {
+                iconElement.textContent = 'chevron_left';
+            }
+        }
+        
+        // 应用宽度
+        editorPane.style.width = `${layoutPreferences.editorWidth}%`;
+        previewPane.style.width = `${layoutPreferences.previewWidth}%`;
+    }
+    
+    // 刷新编辑器
+    setTimeout(() => {
+        if (htmlEditor) htmlEditor.refresh();
+        if (cssEditor) cssEditor.refresh();
+        if (jsEditor) jsEditor.refresh();
+    }, 300);
+}
+
+function setupPaneToggleButtons() {
+    document.querySelectorAll('.toggle-pane-btn').forEach(button => {
+        const targetId = button.dataset.target;
+        const targetPane = document.getElementById(targetId);
+        
+        if (!targetPane) return;
+        
+        button.addEventListener('click', () => {
+            const isEditor = targetId === 'editorPane';
+            // 只有编辑区可以折叠
+            if (isEditor) {
+                // 检查当前状态
+                const isCurrentlyCollapsed = targetPane.classList.contains('collapsed');
+                
+                // 如果已经折叠，则展开
+                if (isCurrentlyCollapsed) {
+                    targetPane.classList.remove('collapsed');
+                    layoutPreferences.editorCollapsed = false;
+                    
+                    // 恢复之前的宽度
+                    targetPane.style.width = `${layoutPreferences.editorWidth}%`;
+                    document.getElementById('previewPane').style.width = `${layoutPreferences.previewWidth}%`;
+                    
+                    // 更新按钮图标
+                    const iconElement = button.querySelector('.material-icons');
+                    iconElement.textContent = 'chevron_left';
+                } 
+                // 如果展开，则折叠
+                else {
+                    targetPane.classList.add('collapsed');
+                    layoutPreferences.editorCollapsed = true;
+                    
+                    // 预览区占据剩余空间
+                    document.getElementById('previewPane').style.width = `calc(100% - var(--pane-collapsed-width))`;
+                    
+                    // 更新按钮图标
+                    const iconElement = button.querySelector('.material-icons');
+                    iconElement.textContent = 'chevron_right';
+                }
+                
+                // 保存布局偏好
+                saveLayoutPreferences();
+                
+                // 刷新编辑器
+                setTimeout(() => {
+                    if (htmlEditor) htmlEditor.refresh();
+                    if (cssEditor) cssEditor.refresh();
+                    if (jsEditor) jsEditor.refresh();
+                }, 300);
+            }
+        });
+    });
+}
+
+function setupVerticalSplitter() {
+    const splitter = document.getElementById('verticalSplitter');
+    if (!splitter) return;
+    
+    const container = document.querySelector('.container');
+    const editorPane = document.getElementById('editorPane');
+    const previewPane = document.getElementById('previewPane');
+    
+    // 添加拖动指示样式
+    splitter.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        
+        // Skip if either pane is collapsed
+        if (editorPane.classList.contains('collapsed') || previewPane.classList.contains('collapsed')) {
+            return;
+        }
+        
+        // 设置拖动状态
+        isDragging = true;
+        document.body.classList.add('resizing');
+        splitter.classList.add('active');
+        
+        const startX = e.clientX;
+        const containerWidth = container.offsetWidth;
+        const initialEditorWidth = editorPane.offsetWidth;
+        const initialPreviewWidth = previewPane.offsetWidth;
+        
+        // 创建性能优化的移动处理函数
+        const onMouseMove = (moveEvent) => {
+            if (!isDragging) return;
+            moveEvent.preventDefault();
+            
+            // 使用requestAnimationFrame和时间节流来优化渲染
+            const now = Date.now();
+            if (now - lastRenderTime < RENDER_THROTTLE) return;
+            lastRenderTime = now;
+            
+            requestAnimationFrame(() => {
+                if (!isDragging) return;
+                
+                const deltaX = moveEvent.clientX - startX;
+                const newEditorWidth = Math.max(200, initialEditorWidth + deltaX);
+                const newPreviewWidth = Math.max(200, containerWidth - newEditorWidth - splitter.offsetWidth);
+                
+                // Calculate percentages
+                const editorPercent = (newEditorWidth / containerWidth) * 100;
+                const previewPercent = (newPreviewWidth / containerWidth) * 100;
+                
+                // Don't allow either pane to get too small (less than 15%)
+                if (editorPercent < 15 || previewPercent < 15) return;
+                
+                // 使用transform而不是直接修改width以提高性能
+                editorPane.style.width = `${editorPercent}%`;
+                previewPane.style.width = `${previewPercent}%`;
+                
+                // 存储当前宽度比例
+                layoutPreferences.editorWidth = editorPercent;
+                layoutPreferences.previewWidth = previewPercent;
+            });
+        };
+        
+        const onMouseUp = () => {
+            // 清除拖动状态
+            isDragging = false;
+            document.body.classList.remove('resizing');
+            splitter.classList.remove('active');
+            
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+            
+            // 拖动结束后刷新编辑器
+            if (htmlEditor) htmlEditor.refresh();
+            if (cssEditor && !document.getElementById('css-editor-container').classList.contains('collapsed')) {
+                cssEditor.refresh();
+            }
+            if (jsEditor && !document.getElementById('js-editor-container').classList.contains('collapsed')) {
+                jsEditor.refresh();
+            }
+            
+            // Save preferences
+            saveLayoutPreferences();
+        };
+        
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+    });
+    
+    // 添加触摸支持
+    splitter.addEventListener('touchstart', (e) => {
+        if (e.touches.length !== 1) return;
+        e.preventDefault();
+        
+        // Skip if either pane is collapsed
+        if (editorPane.classList.contains('collapsed') || previewPane.classList.contains('collapsed')) {
+            return;
+        }
+        
+        // 设置拖动状态
+        isDragging = true;
+        document.body.classList.add('resizing');
+        splitter.classList.add('active');
+        
+        const touch = e.touches[0];
+        const startX = touch.clientX;
+        const containerWidth = container.offsetWidth;
+        const initialEditorWidth = editorPane.offsetWidth;
+        const initialPreviewWidth = previewPane.offsetWidth;
+        
+        const onTouchMove = (moveEvent) => {
+            if (!isDragging || moveEvent.touches.length !== 1) return;
+            
+            // 使用requestAnimationFrame和时间节流来优化渲染
+            const now = Date.now();
+            if (now - lastRenderTime < RENDER_THROTTLE) return;
+            lastRenderTime = now;
+            
+            requestAnimationFrame(() => {
+                if (!isDragging) return;
+                
+                const touch = moveEvent.touches[0];
+                const deltaX = touch.clientX - startX;
+                const newEditorWidth = Math.max(200, initialEditorWidth + deltaX);
+                const newPreviewWidth = Math.max(200, containerWidth - newEditorWidth - splitter.offsetWidth);
+                
+                // Calculate percentages
+                const editorPercent = (newEditorWidth / containerWidth) * 100;
+                const previewPercent = (newPreviewWidth / containerWidth) * 100;
+                
+                // Don't allow either pane to get too small (less than 15%)
+                if (editorPercent < 15 || previewPercent < 15) return;
+                
+                // 使用transform而不是直接修改width以提高性能
+                editorPane.style.width = `${editorPercent}%`;
+                previewPane.style.width = `${previewPercent}%`;
+                
+                // 存储当前宽度比例
+                layoutPreferences.editorWidth = editorPercent;
+                layoutPreferences.previewWidth = previewPercent;
+            });
+        };
+        
+        const onTouchEnd = () => {
+            // 清除拖动状态
+            isDragging = false;
+            document.body.classList.remove('resizing');
+            splitter.classList.remove('active');
+            
+            document.removeEventListener('touchmove', onTouchMove);
+            document.removeEventListener('touchend', onTouchEnd);
+            
+            // 拖动结束后刷新编辑器
+            if (htmlEditor) htmlEditor.refresh();
+            if (cssEditor && !document.getElementById('css-editor-container').classList.contains('collapsed')) {
+                cssEditor.refresh();
+            }
+            if (jsEditor && !document.getElementById('js-editor-container').classList.contains('collapsed')) {
+                jsEditor.refresh();
+            }
+            
+            // Save preferences
+            saveLayoutPreferences();
+        };
+        
+        document.addEventListener('touchmove', onTouchMove, { passive: false });
+        document.addEventListener('touchend', onTouchEnd);
+    });
+}
+
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     conditionalClearDialogShown = false;
@@ -639,4 +1003,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (modalScaleOutput && modalPreviewScaleRange) {
         updateScaleOutput(modalPreviewScaleRange.value);
     }
+    
+    // Handle window resize events
+    window.addEventListener('resize', debounce(() => {
+        // Refresh editors after resize
+        if (htmlEditor) htmlEditor.refresh();
+        if (cssEditor) cssEditor.refresh();
+        if (jsEditor) jsEditor.refresh();
+        
+        // Reapply layout preferences if needed
+        if (window.innerWidth > 900) {
+            applyLayoutPreferences();
+        }
+    }, 250));
 });
