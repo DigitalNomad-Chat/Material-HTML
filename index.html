@@ -196,20 +196,21 @@
             </div>
             <div class="modal-body">
                 <div id="deployStep1" class="deploy-step active">
-                    <p>将您的网站部署到互联网，获取可分享的链接。</p>
-                    <p>您的网站将被创建为可在任何设备上打开的链接。</p>
+                    <p>将您的网站部署到服务器，获取可分享的链接。</p>
+                    <p>您的网站将被上传到服务器，任何设备都可以通过链接访问。</p>
                     <div class="deploy-options">
                         <div class="form-group">
                             <label for="siteName">提示信息:</label>
-                            <p class="small-text">点击"开始部署"后，您将获得一个包含完整网页内容的链接和二维码，可以将网页分享给他人查看。</p>
-                            <p class="small-text">对于较大的网页，某些浏览器可能有链接长度限制，此时可以使用"下载HTML文件"按钮保存网页后分享。</p>
+                            <p class="small-text">点击"开始部署"后，系统将自动将您的网页上传至服务器，并生成可访问的链接。</p>
+                            <p class="small-text">上传的文件默认保留1天，超期后自动删除。链接生成后可复制分享或通过二维码在移动设备上访问。</p>
                         </div>
                     </div>
+                    <!-- 验证码容器将在这里动态添加 -->
                 </div>
                 <div id="deployStep2" class="deploy-step">
                     <div class="deploy-progress">
                         <div class="spinner"></div>
-                        <p>正在部署您的网站，请稍候...</p>
+                        <p>正在将网站上传到服务器，请稍候...</p>
                     </div>
                 </div>
                 <div id="deployStep3" class="deploy-step">
@@ -235,7 +236,7 @@
                         <h3>部署失败</h3>
                         <p>抱歉，部署过程中出现错误:</p>
                         <div class="error-message" id="deployErrorMessage"></div>
-                        <p>请稍后再试或检查您的代码。</p>
+                        <p>请稍后再试或检查您的网络连接。</p>
                     </div>
                 </div>
             </div>

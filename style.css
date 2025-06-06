@@ -735,3 +735,45 @@ body.resizing .splitter-vertical {
     .modal-body { padding: 16px; }
     .modal-actions { padding: 8px 16px; }
 }
+
+/* 验证码容器样式 */
+.captcha-container {
+    margin-top: 15px;
+    padding: 12px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
+}
+
+.captcha-question {
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #333;
+}
+
+.captcha-container .input-container {
+    display: flex;
+    align-items: center;
+}
+
+.captcha-container input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.captcha-container .refresh-captcha {
+    margin-left: 8px;
+    background-color: #f0f0f0;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.captcha-container .refresh-captcha:hover {
+    background-color: #e0e0e0;
+}
