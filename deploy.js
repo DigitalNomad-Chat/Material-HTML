@@ -172,18 +172,33 @@ function closeDeployModal() {
 }
 
 function showDeployStep(stepNumber) {
-    // Hide all steps
+    // 先确保所有步骤都隐藏
     document.querySelectorAll('.deploy-step').forEach(step => {
         step.classList.remove('active');
     });
     
-    // Show the requested step
+    // 确保错误和成功信息被清除
+    if (stepNumber === 1 || stepNumber === 2) {
+        // 如果是回到第1步或第2步，清除之前可能显示的成功或错误信息
+        const errorMessage = document.getElementById('deployErrorMessage');
+        if (errorMessage) {
+            errorMessage.textContent = '';
+        }
+        
+        // 如果有成功信息的容器，也清除内容
+        const successNote = document.querySelector('.deploy-success .small-text');
+        if (successNote) {
+            successNote.textContent = '';
+        }
+    }
+    
+    // 显示请求的步骤
     const stepToShow = document.getElementById(`deployStep${stepNumber}`);
     if (stepToShow) {
         stepToShow.classList.add('active');
     }
     
-    // Update buttons based on step
+    // 更新按钮基于步骤
     const deployAction = document.getElementById('deployAction');
     const deployCancel = document.getElementById('deployCancel');
     const openSiteButton = document.getElementById('openSiteButton');
@@ -201,11 +216,23 @@ function showDeployStep(stepNumber) {
         deployAction.style.display = 'none';
         deployCancel.textContent = '关闭';
         openSiteButton.style.display = 'block';
+        
+        // 确保错误步骤被隐藏
+        const errorStep = document.getElementById('deployStep4');
+        if (errorStep) {
+            errorStep.classList.remove('active');
+        }
     } else if (stepNumber === 4) {
         deployAction.textContent = '重试';
         deployAction.style.display = 'block';
         deployCancel.textContent = '关闭';
         openSiteButton.style.display = 'none';
+        
+        // 确保成功步骤被隐藏
+        const successStep = document.getElementById('deployStep3');
+        if (successStep) {
+            successStep.classList.remove('active');
+        }
     }
 }
 
@@ -290,7 +317,10 @@ async function deployWebsite() {
         return;
     }
     
-    // Show loading state
+    // 清除之前可能的错误或成功状态
+    document.getElementById('deployErrorMessage').textContent = '';
+    
+    // 显示加载状态
     showDeployStep(2);
     document.getElementById('deployAction').disabled = true;
     
@@ -410,14 +440,33 @@ async function deployWebsite() {
             console.warn('无法将已部署的信息存储到localStorage:', e);
         }
         
+        // 确保在显示成功步骤前，错误步骤被隐藏
+        const errorStep = document.getElementById('deployStep4');
+        if (errorStep) {
+            errorStep.classList.remove('active');
+        }
+        
         showDeployStep(3);
     } catch (error) {
         console.error("部署错误:", error);
+        
+        // 确保在显示错误步骤前，成功步骤被隐藏
+        const successStep = document.getElementById('deployStep3');
+        if (successStep) {
+            successStep.classList.remove('active');
+        }
+        
         showDeployError(error.message || '部署过程中发生未知错误');
     }
 }
 
 function showDeployError(errorMessage) {
+    // 确保成功步骤被隐藏
+    const successStep = document.getElementById('deployStep3');
+    if (successStep) {
+        successStep.classList.remove('active');
+    }
+    
     document.getElementById('deployErrorMessage').textContent = errorMessage;
     showDeployStep(4);
     document.getElementById('deployAction').disabled = false;
