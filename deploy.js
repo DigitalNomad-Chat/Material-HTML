@@ -346,6 +346,69 @@ async function deployWebsite() {
                     styleTag.appendChild(tempDoc.createTextNode(cssContent));
                     head.appendChild(styleTag);
                 }
+                
+                // 检测是否包含图表相关代码
+                const hasChartCode = 
+                    htmlContent.includes('echarts') || 
+                    htmlContent.includes('chart') || 
+                    htmlContent.includes('Chart') ||
+                    htmlContent.includes('highcharts') ||
+                    htmlContent.includes('plotly') ||
+                    htmlContent.includes('d3') ||
+                    htmlContent.includes('canvas');
+                
+                // 检查脚本链接
+                const scriptLinks = tempDoc.querySelectorAll('script[src]');
+                const hasChartLibLink = Array.from(scriptLinks).some(script => {
+                    const src = script.getAttribute('src') || '';
+                    return src.includes('echarts') || 
+                          src.includes('chart') || 
+                          src.includes('highcharts') || 
+                          src.includes('plotly') ||
+                          src.includes('d3');
+                });
+                
+                // 如果检测到图表代码，添加图表修复脚本
+                if (hasChartCode || hasChartLibLink) {
+                    // 添加图表修复脚本
+                    const chartFixScript = tempDoc.createElement('script');
+                    chartFixScript.setAttribute('data-chart-fixer', 'true');
+                    chartFixScript.appendChild(tempDoc.createTextNode(`
+                        // 智能图表修复脚本
+                        (function() {
+                            // 在页面加载完成后延迟初始化图表
+                            window.addEventListener('load', function() {
+                                setTimeout(function() {
+                                    // 查找所有图表容器
+                                    const chartContainers = document.querySelectorAll('[id*="chart"], [id*="Chart"], [class*="chart"], [class*="Chart"]');
+                                    if (chartContainers.length === 0) return;
+                                    
+                                    console.log('[图表修复] 找到', chartContainers.length, '个图表容器');
+                                    
+                                    // 如果已加载ECharts但图表没有初始化，尝试初始化
+                                    if (typeof window.echarts !== 'undefined') {
+                                        chartContainers.forEach(function(container) {
+                                            if (!container._echarts_instance_) {
+                                                try {
+                                                    console.log('[图表修复] 尝试初始化图表:', container.id);
+                                                    const chart = echarts.init(container);
+                                                } catch(e) {
+                                                    console.error('[图表修复] 初始化失败:', e);
+                                                }
+                                            }
+                                        });
+                                    }
+                                }, 1000);
+                            });
+                        })();
+                    `));
+                    
+                    // 添加到head的开头，确保先加载
+                    if (head) {
+                        head.insertBefore(chartFixScript, head.firstChild);
+                    }
+                }
+                
                 if (body && jsContent.trim() !== "") {
                     Array.from(body.querySelectorAll('script[data-editor-injected="true"]')).forEach(s => s.remove());
                     const scriptTag = tempDoc.createElement('script');
