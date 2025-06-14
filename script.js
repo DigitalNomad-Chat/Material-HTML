@@ -204,6 +204,182 @@ function updatePreview() {
             let head = tempDoc.querySelector('head');
             let body = tempDoc.querySelector('body');
 
+            // 检测是否包含图表相关代码
+            const hasChartCode = 
+                htmlContent.includes('echarts') || 
+                htmlContent.includes('chart') || 
+                htmlContent.includes('Chart') ||
+                htmlContent.includes('highcharts') ||
+                htmlContent.includes('plotly') ||
+                htmlContent.includes('d3') ||
+                htmlContent.includes('canvas');
+            
+            // 检查脚本链接
+            const scriptLinks = tempDoc.querySelectorAll('script[src]');
+            const hasChartLibLink = Array.from(scriptLinks).some(script => {
+                const src = script.getAttribute('src') || '';
+                return src.includes('echarts') || 
+                      src.includes('chart') || 
+                      src.includes('highcharts') || 
+                      src.includes('plotly') ||
+                      src.includes('d3');
+            });
+            
+            // 如果代码中包含图表相关代码或链接，添加智能修复脚本
+            if (hasChartCode || hasChartLibLink) {
+                // 注入我们的智能图表修复脚本
+                const scriptFixerTag = tempDoc.createElement('script');
+                scriptFixerTag.setAttribute('data-editor-injected', 'true');
+                scriptFixerTag.appendChild(tempDoc.createTextNode(`
+                    // 智能图表修复脚本
+                    (function() {
+                        // 检测页面中的图表库
+                        function detectChartLibraries() {
+                            const libraries = {
+                                echarts: typeof window.echarts !== 'undefined',
+                                highcharts: typeof window.Highcharts !== 'undefined',
+                                chartjs: typeof window.Chart !== 'undefined',
+                                plotly: typeof window.Plotly !== 'undefined',
+                                d3: typeof window.d3 !== 'undefined'
+                            };
+                            return libraries;
+                        }
+                        
+                        // 查找潜在的图表容器
+                        function findChartContainers() {
+                            // 根据ID和类名查找可能的图表容器
+                            return document.querySelectorAll('[id*="chart"], [id*="Chart"], [class*="chart"], [class*="Chart"]');
+                        }
+                        
+                        // 尝试修复和重新初始化图表
+                        function fixCharts() {
+                            const libraries = detectChartLibraries();
+                            const containers = findChartContainers();
+                            
+                            if(containers.length === 0) return;
+                            
+                            console.log('[图表自动修复] 找到 ' + containers.length + ' 个潜在图表容器');
+                            
+                            // 确保容器有相对定位以供加载指示器使用
+                            containers.forEach(container => {
+                                // 如果容器是静态定位，改为相对定位
+                                const style = window.getComputedStyle(container);
+                                if(style.position === 'static') {
+                                    container.style.position = 'relative';
+                                }
+                                
+                                // 为每个容器添加加载指示器
+                                if(!container.querySelector('.chart-auto-loading')) {
+                                    const loader = document.createElement('div');
+                                    loader.className = 'chart-auto-loading';
+                                    loader.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.8);z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column;';
+                                    
+                                    const spinner = document.createElement('div');
+                                    spinner.style.cssText = 'width:40px;height:40px;border-radius:50%;border:3px solid rgba(9, 109, 217, 0.2);border-top-color:#096dd9;animation:chart-spin 1s linear infinite;margin-bottom:15px;';
+                                    
+                                    const text = document.createElement('div');
+                                    text.textContent = '图表加载中...';
+                                    text.style.cssText = 'color:#096dd9;font-size:14px;font-weight:bold;';
+                                    
+                                    loader.appendChild(spinner);
+                                    loader.appendChild(text);
+                                    container.appendChild(loader);
+                                    
+                                    // 添加动画样式
+                                    if(!document.getElementById('chart-auto-fix-style')) {
+                                        const style = document.createElement('style');
+                                        style.id = 'chart-auto-fix-style';
+                                        style.textContent = '@keyframes chart-spin{to{transform:rotate(360deg)}}';
+                                        document.head.appendChild(style);
+                                    }
+                                }
+                            });
+                            
+                            // 检查并修复ECharts
+                            if(libraries.echarts) {
+                                setTimeout(function() {
+                                    console.log('[图表自动修复] 检测到ECharts库，尝试修复');
+                                    containers.forEach(container => {
+                                        try {
+                                            // 检查容器是否已经初始化过echarts实例
+                                            if(!container._echarts && !container.getAttribute('_echarts_instance_')) {
+                                                // 检查页面中是否有该容器的初始化代码
+                                                const initCode = Array.from(document.querySelectorAll('script:not([src])')).map(s => s.textContent).join('\\n');
+                                                
+                                                // 如果有echarts初始化代码但没成功执行，尝试重新初始化
+                                                if(initCode.includes(container.id) && initCode.includes('echarts.init')) {
+                                                    console.log('[图表自动修复] 尝试重新初始化图表:', container.id);
+                                                    try {
+                                                        const chart = echarts.init(container);
+                                                        
+                                                        // 尝试从代码中提取配置对象
+                                                        let optionMatch = initCode.match(/option\\s*=\\s*({[\\s\\S]*?});\\s*(?:myChart|chart)\\.setOption/);
+                                                        if(optionMatch) {
+                                                            try {
+                                                                // 安全地尝试解析和应用配置
+                                                                const optionText = optionMatch[1]
+                                                                    .replace(/\\n/g, '')
+                                                                    .replace(/\\s+/g, ' ')
+                                                                    .replace(/'/g, '"')
+                                                                    .replace(/([a-zA-Z0-9_$]+):/g, '"$1":')
+                                                                    .replace(/,\\s*}/g, '}')
+                                                                    .replace(/,\\s*]/g, ']');
+                                                                    
+                                                                const optionObj = Function('return ' + optionText)();
+                                                                chart.setOption(optionObj);
+                                                                
+                                                                console.log('[图表自动修复] 图表 ' + container.id + ' 已自动修复');
+                                                                
+                                                                // 隐藏加载指示器
+                                                                const loader = container.querySelector('.chart-auto-loading');
+                                                                if(loader) loader.style.display = 'none';
+                                                            } catch(e) {
+                                                                console.error('[图表自动修复] 配置解析失败:', e);
+                                                            }
+                                                        }
+                                                    } catch(e) {
+                                                        console.error('[图表自动修复] 重新初始化失败:', e);
+                                                    }
+                                                }
+                                            }
+                                        } catch(e) {
+                                            console.error('[图表自动修复] 处理容器失败:', e);
+                                        }
+                                    });
+                                }, 800); // 延迟执行
+                            }
+                            
+                            // 如果页面上已有图表实例，隐藏所有加载指示器
+                            setTimeout(function() {
+                                const loaders = document.querySelectorAll('.chart-auto-loading');
+                                loaders.forEach(loader => {
+                                    loader.style.display = 'none';
+                                });
+                            }, 2500); // 最长等待2.5秒
+                        }
+                        
+                        // 在DOM加载完成后执行修复
+                        if (document.readyState === 'loading') {
+                            document.addEventListener('DOMContentLoaded', function() {
+                                setTimeout(fixCharts, 500);
+                            });
+                        } else {
+                            setTimeout(fixCharts, 500);
+                        }
+                        
+                        // 确保在页面完全加载后再执行一次修复
+                        window.addEventListener('load', function() {
+                            setTimeout(fixCharts, 1000);
+                        });
+                    })();
+                `));
+                
+                // 将脚本添加到文档头部，确保在其他脚本之前执行
+                if (head) {
+                    head.insertBefore(scriptFixerTag, head.firstChild);
+                }
+            }
+
             if (head && cssContent.trim() !== "") {
                 Array.from(head.querySelectorAll('style[data-editor-injected="true"]')).forEach(s => s.remove());
                 const styleTag = tempDoc.createElement('style');
@@ -306,6 +482,177 @@ function updatePreview() {
                 `));
                 body.appendChild(scriptWrapperTag);
             }
+
+            // 注入异步资源加载器脚本，确保即使外部库加载失败也有备选方案
+            const scriptResourceTag = tempDoc.createElement('script');
+            scriptResourceTag.setAttribute('data-editor-injected', 'true');
+            scriptResourceTag.appendChild(tempDoc.createTextNode(`
+                // 资源加载辅助工具
+                window._resourceLoader = {
+                    // 检查是否有外部库未加载成功
+                    checkLibraries: function() {
+                        const scripts = document.querySelectorAll('script[src]');
+                        
+                        // 为常见库创建备选CDN源映射
+                        const cdnMapping = {
+                            'echarts': [
+                                'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js',
+                                'https://cdn.staticfile.org/echarts/5.4.3/echarts.min.js',
+                                'https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js',
+                                'https://lf9-cdn-tos.bytecdntp.com/cdn/expire-1-M/echarts/5.4.3/echarts.min.js'
+                            ],
+                            'chart.js': [
+                                'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
+                                'https://cdn.staticfile.org/Chart.js/4.4.0/chart.umd.min.js',
+                                'https://cdn.bootcdn.net/ajax/libs/Chart.js/4.4.0/chart.umd.min.js'
+                            ],
+                            'highcharts': [
+                                'https://cdn.jsdelivr.net/npm/highcharts@11.1.0/highcharts.js',
+                                'https://cdn.staticfile.org/highcharts/11.1.0/highcharts.js',
+                                'https://cdn.bootcdn.net/ajax/libs/highcharts/11.1.0/highcharts.js'
+                            ]
+                        };
+                        
+                        // 检查脚本并加载备选源
+                        scripts.forEach(script => {
+                            const src = script.getAttribute('src') || '';
+                            
+                            // 确定当前脚本尝试加载的是哪个库
+                            let libraryType = null;
+                            if(src.includes('echarts')) libraryType = 'echarts';
+                            else if(src.includes('chart.js') || src.includes('Chart.js')) libraryType = 'chart.js';
+                            else if(src.includes('highcharts')) libraryType = 'highcharts';
+                            
+                            if(libraryType) {
+                                // 检查库是否已成功加载
+                                let isLoaded = false;
+                                switch(libraryType) {
+                                    case 'echarts': isLoaded = typeof window.echarts !== 'undefined'; break;
+                                    case 'chart.js': isLoaded = typeof window.Chart !== 'undefined'; break;
+                                    case 'highcharts': isLoaded = typeof window.Highcharts !== 'undefined'; break;
+                                }
+                                
+                                // 如果未加载成功，则使用备选CDN源
+                                if(!isLoaded && cdnMapping[libraryType]) {
+                                    console.log('[资源加载器] 检测到 ' + libraryType + ' 加载失败，尝试使用备选CDN源');
+                                    this.loadFromFallbacks(libraryType, cdnMapping[libraryType]);
+                                }
+                            }
+                        });
+                    },
+                    
+                    // 从备选CDN源逐一尝试加载
+                    loadFromFallbacks: function(libraryType, sources) {
+                        if(!sources || sources.length === 0) return;
+                        
+                        // 记录当前使用的CDN索引
+                        let currentSourceIndex = 0;
+                        
+                        const tryLoad = () => {
+                            if(currentSourceIndex >= sources.length) {
+                                console.error('[资源加载器] 所有备选CDN源都加载失败:', libraryType);
+                                this.showErrorMessage(libraryType);
+                                return;
+                            }
+                            
+                            const script = document.createElement('script');
+                            script.src = sources[currentSourceIndex];
+                            
+                            // 加载成功时的处理
+                            script.onload = () => {
+                                console.log('[资源加载器] 成功从备选源加载 ' + libraryType + ':', sources[currentSourceIndex]);
+                                setTimeout(() => {
+                                    // 通知页面图表库已加载完成
+                                    const event = new CustomEvent('chartlibraryloaded', { 
+                                        detail: { libraryType: libraryType } 
+                                    });
+                                    window.dispatchEvent(event);
+                                }, 200);
+                            };
+                            
+                            // 加载失败时尝试下一个源
+                            script.onerror = () => {
+                                console.warn('[资源加载器] 备选源加载失败:', sources[currentSourceIndex]);
+                                currentSourceIndex++;
+                                setTimeout(tryLoad, 100);
+                            };
+                            
+                            document.head.appendChild(script);
+                        };
+                        
+                        tryLoad();
+                    },
+                    
+                    // 显示错误信息
+                    showErrorMessage: function(libraryType) {
+                        // 查找图表容器并显示错误信息
+                        const containers = document.querySelectorAll('[id*="chart"], [id*="Chart"]');
+                        containers.forEach(container => {
+                            const errorMsg = document.createElement('div');
+                            errorMsg.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;background:#fff;display:flex;align-items:center;justify-content:center;color:#ff4d4f;font-weight:bold;text-align:center;';
+                            errorMsg.innerHTML = '图表库 (' + libraryType + ') 加载失败<br>请检查网络连接或更换CDN源';
+                            container.style.position = 'relative';
+                            container.appendChild(errorMsg);
+                        });
+                    }
+                };
+                
+                // 检查并处理外部库加载
+                window.addEventListener('load', function() {
+                    setTimeout(function() {
+                        window._resourceLoader.checkLibraries();
+                    }, 1000);
+                });
+                
+                // 监听图表库加载事件，尝试重新初始化图表
+                window.addEventListener('chartlibraryloaded', function(event) {
+                    setTimeout(function() {
+                        console.log('[资源加载器] 图表库已加载，尝试初始化:', event.detail.libraryType);
+                        const scripts = document.querySelectorAll('script:not([src])');
+                        
+                        // 根据库类型查找并执行初始化代码
+                        if(event.detail.libraryType === 'echarts' && window.echarts) {
+                            const containers = document.querySelectorAll('[id*="chart"], [id*="Chart"]');
+                            containers.forEach(container => {
+                                try {
+                                    const chart = echarts.init(container);
+                                    
+                                    // 查找原始脚本中的配置
+                                    let foundOption = null;
+                                    scripts.forEach(script => {
+                                        if(!foundOption && script.textContent.includes(container.id) && 
+                                           script.textContent.includes('echarts.init')) {
+                                            const optionMatch = script.textContent.match(/option\\s*=\\s*({[\\s\\S]*?});\\s*(?:myChart|chart)\\.setOption/);
+                                            if(optionMatch) {
+                                                try {
+                                                    const optionText = optionMatch[1];
+                                                    foundOption = Function('return ' + optionText)();
+                                                } catch(e) {
+                                                    console.error('配置解析失败:', e);
+                                                }
+                                            }
+                                        }
+                                    });
+                                    
+                                    // 应用找到的配置
+                                    if(foundOption) {
+                                        chart.setOption(foundOption);
+                                        console.log('[资源加载器] 图表 ' + container.id + ' 已成功重新初始化');
+                                    }
+                                } catch(e) {
+                                    console.error('[资源加载器] 重新初始化失败:', e);
+                                }
+                            });
+                        }
+                    }, 300);
+                });
+            `));
+            
+            // 添加资源加载器到head
+            if (head) {
+                head.appendChild(scriptResourceTag);
+            }
+
             finalHtml = tempDoc.documentElement.outerHTML;
         } catch (e) {
             console.error("Error parsing user HTML:", e);
