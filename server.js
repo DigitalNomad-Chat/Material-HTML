@@ -46,13 +46,13 @@ app.use('/preview', express.static(localStorageHandler.config.uploadDir, {
     // 安全相关响应头，但允许加载外部资源
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-    // 修改CSP策略，允许加载常用的外部资源
+    // 修改CSP策略，允许加载常用的外部资源，添加 cdn.staticfile.org
     res.setHeader('Content-Security-Policy', 
-      "default-src 'self' https://cdn.jsdelivr.net http://at.alicdn.com https://*.bootcdn.net data:; " +
-      "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://*.bootcdn.net; " + 
-      "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://*.bootcdn.net; " +
-      "font-src 'self' data: http://at.alicdn.com https://cdn.jsdelivr.net https://*.bootcdn.net; " +
-      "img-src 'self' data: https://*.bootcdn.net;"
+      "default-src 'self' https://cdn.jsdelivr.net http://at.alicdn.com https://*.bootcdn.net https://*.staticfile.org data:; " +
+      "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://*.bootcdn.net https://*.staticfile.org; " + 
+      "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://*.bootcdn.net https://*.staticfile.org; " +
+      "font-src 'self' data: http://at.alicdn.com https://cdn.jsdelivr.net https://*.bootcdn.net https://*.staticfile.org; " +
+      "img-src 'self' data: https://*.bootcdn.net https://*.staticfile.org;"
     );
   }
 }));

@@ -194,12 +194,27 @@ function updatePreview() {
                 styleTag.appendChild(tempDoc.createTextNode(cssContent));
                 head.appendChild(styleTag);
             }
+            
+            // 修改脚本注入方式，确保脚本在资源加载后执行
             if (body && jsContent.trim() !== "") {
                 Array.from(body.querySelectorAll('script[data-editor-injected="true"]')).forEach(s => s.remove());
-                const scriptTag = tempDoc.createElement('script');
-                scriptTag.setAttribute('data-editor-injected', 'true');
-                scriptTag.appendChild(tempDoc.createTextNode(jsContent));
-                body.appendChild(scriptTag);
+                
+                // 在</body>前添加一个特殊脚本，确保DOM加载完成后执行用户脚本
+                const scriptWrapperTag = tempDoc.createElement('script');
+                scriptWrapperTag.setAttribute('data-editor-injected', 'true');
+                scriptWrapperTag.appendChild(tempDoc.createTextNode(`
+                    // 确保资源加载完毕后执行初始化脚本
+                    window.addEventListener('load', function() {
+                        setTimeout(function() {
+                            try {
+                                ${jsContent}
+                            } catch (e) {
+                                console.error("Error executing user script:", e);
+                            }
+                        }, 200);
+                    });
+                `));
+                body.appendChild(scriptWrapperTag);
             }
             finalHtml = tempDoc.documentElement.outerHTML;
         } catch (e) {
@@ -210,7 +225,17 @@ function updatePreview() {
         finalHtml = `
             <!DOCTYPE html><html><head><meta charset="UTF-8"><title>Preview</title>
             <style>${cssContent}</style></head><body>${htmlContent}
-            <script>${jsContent}<\/script></body></html>`;
+            <script>
+                window.addEventListener('load', function() {
+                    setTimeout(function() {
+                        try {
+                            ${jsContent}
+                        } catch (e) {
+                            console.error("Error executing user script:", e);
+                        }
+                    }, 200);
+                });
+            <\/script></body></html>`;
     }
     const previewDoc = previewFrame.contentDocument || previewFrame.contentWindow.document;
     try {
