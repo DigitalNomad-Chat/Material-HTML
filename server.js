@@ -46,13 +46,42 @@ app.use('/preview', express.static(localStorageHandler.config.uploadDir, {
     // 安全相关响应头，但允许加载外部资源
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-    // 修改CSP策略，允许加载常用的外部资源，添加 cdn.staticfile.org
+    // 修改CSP策略，允许加载常用的中国大陆CDN资源
     res.setHeader('Content-Security-Policy', 
-      "default-src 'self' https://cdn.jsdelivr.net http://at.alicdn.com https://*.bootcdn.net https://*.staticfile.org data:; " +
-      "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://*.bootcdn.net https://*.staticfile.org; " + 
-      "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://*.bootcdn.net https://*.staticfile.org; " +
-      "font-src 'self' data: http://at.alicdn.com https://cdn.jsdelivr.net https://*.bootcdn.net https://*.staticfile.org; " +
-      "img-src 'self' data: https://*.bootcdn.net https://*.staticfile.org;"
+      "default-src 'self' https://cdn.jsdelivr.net http://at.alicdn.com " +
+      "https://*.bootcdn.net https://*.staticfile.org " +
+      "https://cdn.bytedance.com https://*.bytecdntp.com " +
+      "https://cdn.baomitu.com https://jscdn.upai.com " + 
+      "https://cdn.alicdn.com https://g.alicdn.com https://cdn.bdstatic.com " +
+      "https://*.pstatp.com https://*.jd.com https://unpkg.zhimg.com data:; " +
+      
+      "script-src 'self' 'unsafe-inline' " + 
+      "https://cdn.jsdelivr.net https://*.bootcdn.net https://*.staticfile.org " +
+      "https://cdn.bytedance.com https://*.bytecdntp.com " +
+      "https://cdn.baomitu.com https://jscdn.upai.com " +
+      "https://cdn.alicdn.com https://g.alicdn.com https://cdn.bdstatic.com " +
+      "https://*.pstatp.com https://*.jd.com https://unpkg.zhimg.com; " + 
+      
+      "style-src 'self' 'unsafe-inline' " + 
+      "https://cdn.jsdelivr.net https://*.bootcdn.net https://*.staticfile.org " +
+      "https://cdn.bytedance.com https://*.bytecdntp.com " +
+      "https://cdn.baomitu.com https://jscdn.upai.com " +
+      "https://cdn.alicdn.com https://g.alicdn.com https://cdn.bdstatic.com " +
+      "https://*.pstatp.com https://*.jd.com https://unpkg.zhimg.com; " +
+      
+      "font-src 'self' data: " +  
+      "http://at.alicdn.com https://cdn.jsdelivr.net https://*.bootcdn.net " +
+      "https://*.staticfile.org https://cdn.bytedance.com https://*.bytecdntp.com " +
+      "https://cdn.baomitu.com https://jscdn.upai.com " +
+      "https://cdn.alicdn.com https://g.alicdn.com https://cdn.bdstatic.com " +
+      "https://*.pstatp.com https://*.jd.com https://unpkg.zhimg.com; " +
+      
+      "img-src 'self' data: " + 
+      "https://*.bootcdn.net https://*.staticfile.org " +
+      "https://cdn.bytedance.com https://*.bytecdntp.com " +
+      "https://cdn.baomitu.com https://jscdn.upai.com " +
+      "https://cdn.alicdn.com https://g.alicdn.com https://cdn.bdstatic.com " +
+      "https://*.pstatp.com https://*.jd.com https://unpkg.zhimg.com;"
     );
   }
 }));

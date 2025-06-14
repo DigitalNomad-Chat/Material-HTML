@@ -180,6 +180,24 @@ function updatePreview() {
     const jsContent = jsEditor.getValue();
     let finalHtml;
 
+    // 显示加载指示器状态
+    const previewPane = document.getElementById('previewPane');
+    
+    // 添加加载指示器（如果不存在）
+    let loadingIndicator = previewPane.querySelector('.preview-loading-indicator');
+    if (!loadingIndicator) {
+        loadingIndicator = document.createElement('div');
+        loadingIndicator.className = 'preview-loading-indicator';
+        loadingIndicator.innerHTML = `
+            <div class="loading-spinner"></div>
+            <div class="loading-message">预览内容构建中...</div>
+        `;
+        previewPane.appendChild(loadingIndicator);
+    }
+    
+    // 显示加载指示器
+    loadingIndicator.classList.add('active');
+
     if (htmlContent.trim().toLowerCase().includes("<html")) {
         try {
             let tempDoc = new DOMParser().parseFromString(htmlContent, "text/html");
@@ -195,6 +213,46 @@ function updatePreview() {
                 head.appendChild(styleTag);
             }
             
+            // 注入加载状态提示样式
+            const loadingStyleTag = tempDoc.createElement('style');
+            loadingStyleTag.type = 'text/css';
+            loadingStyleTag.setAttribute('data-editor-injected', 'true');
+            loadingStyleTag.appendChild(tempDoc.createTextNode(`
+                .chart-loading {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(255,255,255,0.8);
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 1000;
+                    font-family: Arial, sans-serif;
+                }
+                .chart-loading-spinner {
+                    width: 40px;
+                    height: 40px;
+                    border: 4px solid rgba(24,144,255,0.2);
+                    border-radius: 50%;
+                    border-top-color: #1890ff;
+                    animation: chart-spin 1s linear infinite;
+                    margin-bottom: 15px;
+                }
+                .chart-loading-text {
+                    color: #1890ff;
+                    font-size: 14px;
+                    font-weight: bold;
+                }
+                @keyframes chart-spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            `));
+            head.appendChild(loadingStyleTag);
+            
             // 修改脚本注入方式，确保脚本在资源加载后执行
             if (body && jsContent.trim() !== "") {
                 Array.from(body.querySelectorAll('script[data-editor-injected="true"]')).forEach(s => s.remove());
@@ -203,15 +261,47 @@ function updatePreview() {
                 const scriptWrapperTag = tempDoc.createElement('script');
                 scriptWrapperTag.setAttribute('data-editor-injected', 'true');
                 scriptWrapperTag.appendChild(tempDoc.createTextNode(`
+                    // 为带有特定类名的容器添加加载指示器
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const chartContainers = document.querySelectorAll('[id*="chart"], [id*="Chart"], [class*="chart"], [class*="Chart"]');
+                        chartContainers.forEach(container => {
+                            // 确保容器有相对定位
+                            const computedStyle = window.getComputedStyle(container);
+                            if (computedStyle.position === 'static') {
+                                container.style.position = 'relative';
+                            }
+                            
+                            // 添加加载指示器
+                            const loadingDiv = document.createElement('div');
+                            loadingDiv.className = 'chart-loading';
+                            loadingDiv.innerHTML = '<div class="chart-loading-spinner"></div><div class="chart-loading-text">图表加载中...</div>';
+                            container.appendChild(loadingDiv);
+                            
+                            // 存储引用以便后续移除
+                            container.loadingIndicator = loadingDiv;
+                        });
+                    });
+                    
                     // 确保资源加载完毕后执行初始化脚本
                     window.addEventListener('load', function() {
                         setTimeout(function() {
                             try {
+                                // 用户脚本
                                 ${jsContent}
+                                
+                                // 尝试检测echarts或其他图表库的存在并在图表初始化后移除加载指示器
+                                setTimeout(function() {
+                                    const chartContainers = document.querySelectorAll('[id*="chart"], [id*="Chart"], [class*="chart"], [class*="Chart"]');
+                                    chartContainers.forEach(container => {
+                                        if (container.loadingIndicator) {
+                                            container.loadingIndicator.style.display = 'none';
+                                        }
+                                    });
+                                }, 1000); // 延迟1秒后隐藏加载指示器
                             } catch (e) {
                                 console.error("Error executing user script:", e);
                             }
-                        }, 200);
+                        }, 300);
                     });
                 `));
                 body.appendChild(scriptWrapperTag);
@@ -224,16 +314,82 @@ function updatePreview() {
     } else {
         finalHtml = `
             <!DOCTYPE html><html><head><meta charset="UTF-8"><title>Preview</title>
-            <style>${cssContent}</style></head><body>${htmlContent}
+            <style>
+                .chart-loading {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(255,255,255,0.8);
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 1000;
+                    font-family: Arial, sans-serif;
+                }
+                .chart-loading-spinner {
+                    width: 40px;
+                    height: 40px;
+                    border: 4px solid rgba(24,144,255,0.2);
+                    border-radius: 50%;
+                    border-top-color: #1890ff;
+                    animation: chart-spin 1s linear infinite;
+                    margin-bottom: 15px;
+                }
+                .chart-loading-text {
+                    color: #1890ff;
+                    font-size: 14px;
+                    font-weight: bold;
+                }
+                @keyframes chart-spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                ${cssContent}
+            </style></head><body>
+            ${htmlContent}
             <script>
+                // 为带有特定类名的容器添加加载指示器
+                document.addEventListener('DOMContentLoaded', function() {
+                    const chartContainers = document.querySelectorAll('[id*="chart"], [id*="Chart"], [class*="chart"], [class*="Chart"]');
+                    chartContainers.forEach(container => {
+                        // 确保容器有相对定位
+                        const computedStyle = window.getComputedStyle(container);
+                        if (computedStyle.position === 'static') {
+                            container.style.position = 'relative';
+                        }
+                        
+                        // 添加加载指示器
+                        const loadingDiv = document.createElement('div');
+                        loadingDiv.className = 'chart-loading';
+                        loadingDiv.innerHTML = '<div class="chart-loading-spinner"></div><div class="chart-loading-text">图表加载中...</div>';
+                        container.appendChild(loadingDiv);
+                        
+                        // 存储引用以便后续移除
+                        container.loadingIndicator = loadingDiv;
+                    });
+                });
+                
                 window.addEventListener('load', function() {
                     setTimeout(function() {
                         try {
                             ${jsContent}
+                            
+                            // 尝试检测echarts或其他图表库的存在并在图表初始化后移除加载指示器
+                            setTimeout(function() {
+                                const chartContainers = document.querySelectorAll('[id*="chart"], [id*="Chart"], [class*="chart"], [class*="Chart"]');
+                                chartContainers.forEach(container => {
+                                    if (container.loadingIndicator) {
+                                        container.loadingIndicator.style.display = 'none';
+                                    }
+                                });
+                            }, 1000); // 延迟1秒后隐藏加载指示器
                         } catch (e) {
                             console.error("Error executing user script:", e);
                         }
-                    }, 200);
+                    }, 300);
                 });
             <\/script></body></html>`;
     }
@@ -242,10 +398,27 @@ function updatePreview() {
         previewDoc.open();
         previewDoc.write(finalHtml);
         previewDoc.close();
+        
+        // 监听iframe的加载事件以隐藏主加载指示器
+        previewFrame.onload = function() {
+            // 隐藏加载指示器
+            setTimeout(function() {
+                if (loadingIndicator) {
+                    loadingIndicator.classList.remove('active');
+                }
+            }, 500); // 给一些额外时间确保内容渲染完成
+        };
     } catch (e) {
         console.error("Error writing to iframe:", e);
         // Fallback for some environments or if write is blocked
         previewFrame.src = "data:text/html;charset=utf-8," + encodeURIComponent(finalHtml);
+        
+        // 隐藏加载指示器
+        setTimeout(function() {
+            if (loadingIndicator) {
+                loadingIndicator.classList.remove('active');
+            }
+        }, 1000);
     }
 }
 

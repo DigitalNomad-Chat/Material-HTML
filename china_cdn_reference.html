@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中国大陆常用CDN资源引用指南</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #1a73e8;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
+        }
+        h2 {
+            margin: 25px 0 15px;
+            color: #1a73e8;
+        }
+        p {
+            margin-bottom: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        th, td {
+            border: 1px solid #e0e0e0;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        th {
+            background-color: #f5f7fa;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+        tr:hover {
+            background-color: #f0f4f8;
+        }
+        .code {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            background: #f5f5f5;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 13px;
+            border-left: 3px solid #1a73e8;
+        }
+        .note {
+            background: #e8f0fe;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            border-left: 4px solid #1a73e8;
+        }
+        .note h3 {
+            margin-top: 0;
+            color: #1a73e8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>中国大陆常用CDN资源引用指南</h1>
+        
+        <div class="note">
+            <h3>重要提示</h3>
+            <p>本文档提供国内常用CDN的相关信息，便于前端开发中引用各类库和框架。由于网络环境差异，建议在实际项目中使用多CDN源备选策略，确保资源加载可靠性。</p>
+        </div>
+        
+        <h2>常用CDN列表</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>CDN名称</th>
+                    <th>访问地址</th>
+                    <th>特点</th>
+                    <th>适用场景</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>BootCDN</td>
+                    <td>https://www.bootcdn.cn/</td>
+                    <td>稳定、资源丰富、国内访问快</td>
+                    <td>大多数前端项目</td>
+                </tr>
+                <tr>
+                    <td>七牛云 Staticfile CDN</td>
+                    <td>https://www.staticfile.org/</td>
+                    <td>开放CDN，涵盖常用JS/CSS库</td>
+                    <td>一般Web项目</td>
+                </tr>
+                <tr>
+                    <td>字节跳动静态资源库</td>
+                    <td>https://cdn.bytedance.com/</td>
+                    <td>稳定，大型企业支持</td>
+                    <td>各类前端项目</td>
+                </tr>
+                <tr>
+                    <td>360 前端静态资源库</td>
+                    <td>https://cdn.baomitu.com/</td>
+                    <td>覆盖大部分主流库</td>
+                    <td>企业级Web应用</td>
+                </tr>
+                <tr>
+                    <td>阿里云 CDN</td>
+                    <td>https://cdn.alicdn.com/</td>
+                    <td>与阿里生态集成良好</td>
+                    <td>电商、企业应用</td>
+                </tr>
+                <tr>
+                    <td>百度静态资源公共库</td>
+                    <td>https://cdn.bdstatic.com/</td>
+                    <td>支持百度系产品</td>
+                    <td>百度生态应用</td>
+                </tr>
+                <tr>
+                    <td>CDNJS镜像</td>
+                    <td>https://lf9-cdn-tos.bytecdntp.com/cdn/expire-1-M/</td>
+                    <td>CDNJS国内镜像</td>
+                    <td>需要国外库但访问不稳定时</td>
+                </tr>
+                <tr>
+                    <td>jsDelivr</td>
+                    <td>https://cdn.jsdelivr.net/</td>
+                    <td>国际CDN，提供npm/GitHub资源</td>
+                    <td>开源项目，全球访问</td>
+                </tr>
+                <tr>
+                    <td>又拍云 jscdn</td>
+                    <td>https://jscdn.upai.com/</td>
+                    <td>稳定性好，速度快</td>
+                    <td>需要高性能CDN的项目</td>
+                </tr>
+                <tr>
+                    <td>知乎unpkg镜像</td>
+                    <td>https://unpkg.zhimg.com/</td>
+                    <td>unpkg的国内镜像</td>
+                    <td>npm包直接使用</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h2>常用库引用示例</h2>
+        
+        <h3>ECharts 图表库（以5.4.3版本为例）</h3>
+        
+        <h4>方式1：使用 BootCDN</h4>
+        <div class="code">
+            &lt;script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js"&gt;&lt;/script&gt;
+        </div>
+        
+        <h4>方式2：使用 Staticfile CDN</h4>
+        <div class="code">
+            &lt;script src="https://cdn.staticfile.org/echarts/5.4.3/echarts.min.js"&gt;&lt;/script&gt;
+        </div>
+        
+        <h4>方式3：使用 jsdelivr</h4>
+        <div class="code">
+            &lt;script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"&gt;&lt;/script&gt;
+        </div>
+        
+        <h4>方式4：使用 字节跳动 CDN</h4>
+        <div class="code">
+            &lt;script src="https://lf9-cdn-tos.bytecdntp.com/cdn/expire-1-M/echarts/5.4.3/echarts.min.js"&gt;&lt;/script&gt;
+        </div>
+        
+        <h3>Font Awesome 图标库（以6.4.0版本为例）</h3>
+        
+        <h4>方式1：使用 BootCDN</h4>
+        <div class="code">
+            &lt;link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css"&gt;
+        </div>
+        
+        <h4>方式2：使用 jsDelivr</h4>
+        <div class="code">
+            &lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css"&gt;
+        </div>
+        
+        <h2>多CDN源加载策略（推荐）</h2>
+        <p>为提高资源加载成功率，建议使用多CDN源作为备选方案，下面是一个实用例子：</p>
+        
+        <div class="code">
+&lt;!-- 主要CDN源 --&gt;
+&lt;script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js"&gt;&lt;/script&gt;
+
+&lt;!-- 备选CDN源自动加载脚本（在主要CDN加载失败时使用） --&gt;
+&lt;script&gt;
+    window.addEventListener('error', function(e) {
+        // 只处理脚本加载错误
+        if (e.target.tagName === 'SCRIPT' && e.target.src.includes('bootcdn')) {
+            console.log('主要CDN加载失败，尝试备用CDN');
+            
+            // 如果bootcdn加载失败，先尝试staticfile
+            var script1 = document.createElement('script');
+            script1.src = "https://cdn.staticfile.org/echarts/5.4.3/echarts.min.js";
+            script1.onerror = function() {
+                // 如果staticfile也失败，再尝试jsdelivr
+                var script2 = document.createElement('script');
+                script2.src = "https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js";
+                document.head.appendChild(script2);
+            };
+            document.head.appendChild(script1);
+        }
+    }, true);
+&lt;/script&gt;
+        </div>
+        
+        <div class="note">
+            <h3>提示</h3>
+            <p>在选择CDN时，请考虑以下因素：</p>
+            <ul>
+                <li>目标用户的地理位置和网络环境</li>
+                <li>CDN的稳定性和更新频率</li>
+                <li>是否支持HTTPS</li>
+                <li>资源版本的完整性</li>
+                <li>有无SRI（子资源完整性）支持</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html> 
