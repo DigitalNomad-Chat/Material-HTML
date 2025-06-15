@@ -164,16 +164,6 @@ function initializeEditors() {
     cssEditor.on('change', debouncedUpdatePreviewAndSave);
     jsEditor.on('change', debouncedUpdatePreviewAndSave);
 
-    // 确保CSS和JavaScript编辑区初始化时为折叠状态
-    document.getElementById('cssSection').classList.add('section-collapsed');
-    document.getElementById('jsSection').classList.add('section-collapsed');
-    document.getElementById('css-editor-container').classList.add('collapsed');
-    document.getElementById('js-editor-container').classList.add('collapsed');
-    const cssToggleBtn = document.querySelector('[data-editor="cssEditor"]');
-    const jsToggleBtn = document.querySelector('[data-editor="jsEditor"]');
-    if (cssToggleBtn) cssToggleBtn.setAttribute('aria-expanded', 'false');
-    if (jsToggleBtn) jsToggleBtn.setAttribute('aria-expanded', 'false');
-
     setupCollapsibleSections();
     setupResizablePanes(); // Call after collapsible sections are set up
     setupVerticalSplitter();
@@ -447,13 +437,10 @@ function loadExampleCode() {
         const container = document.getElementById(`${type}-editor-container`);
         const button = section.querySelector('.toggle-btn');
         const icon = button.querySelector('.material-icons');
-        
-        // 确保HTML展开，CSS和JS始终折叠
         const isHtmlEditor = (type === 'html');
-        const shouldBeCollapsed = !isHtmlEditor; // HTML不折叠，其他都折叠
 
-        section.classList.toggle('section-collapsed', shouldBeCollapsed);
-        container.classList.toggle('collapsed', shouldBeCollapsed);
+        section.classList.toggle('section-collapsed', !isHtmlEditor); // HTML expanded, others collapsed
+        container.classList.toggle('collapsed', !isHtmlEditor);
         button.setAttribute('aria-expanded', String(isHtmlEditor));
         if (icon) {
             icon.textContent = isHtmlEditor ? 'expand_less' : 'expand_more';
@@ -474,7 +461,6 @@ function setupCollapsibleSections() {
         const targetContainer = document.getElementById(targetId);
         const editorSection = document.getElementById(button.dataset.section);
         const iconElement = button.querySelector('.material-icons');
-        const editorType = button.dataset.editor;
 
         const updateButtonState = (isColl) => {
             button.setAttribute('aria-expanded', String(!isColl));
@@ -485,19 +471,10 @@ function setupCollapsibleSections() {
             }
         };
         
-        // 确保CSS和JS始终默认折叠，无论之前用户设置如何
-        let isInitiallyCollapsed;
-        if (editorType === "cssEditor" || editorType === "jsEditor") {
-            // CSS和JS编辑区始终折叠
-            isInitiallyCollapsed = true;
-            editorSection.classList.add('section-collapsed');
-        } else {
-            // HTML编辑区根据之前状态决定
-            isInitiallyCollapsed = editorSection.classList.contains('collapsed-section');
-            // HTML编辑器默认展开
-            if (editorType === "htmlEditor" && !editorSection.classList.contains('section-collapsed')) {
-                isInitiallyCollapsed = false;
-            }
+        let isInitiallyCollapsed = editorSection.classList.contains('collapsed-section');
+        // HTML editor is not 'collapsed-section' by default in HTML
+        if (button.dataset.editor === "htmlEditor" && !editorSection.classList.contains('section-collapsed')) {
+            isInitiallyCollapsed = false;
         }
         
         targetContainer.classList.toggle('collapsed', isInitiallyCollapsed);
