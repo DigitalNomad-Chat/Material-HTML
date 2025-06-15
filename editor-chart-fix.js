@@ -175,8 +175,8 @@
                 if (content.includes('DOMContentLoaded') && content.includes('echarts.init')) {
                     console.log('[编辑器图表修复] 找到DOMContentLoaded中的图表初始化代码，尝试执行');
                     try {
-                        // 提取并执行DOMContentLoaded事件处理程序
-                        const match = content.match(/DOMContentLoaded[^{]*{([\s\S]*?)}\);/);
+                        // 提取并执行DOMContentLoaded事件处理程序 - 修复正则表达式
+                        const match = content.match(/DOMContentLoaded[^{]*{([\s\S]*?)}\)/);
                         if (match && match[1]) {
                             const fixedCode = `
                                 try {

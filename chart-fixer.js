@@ -159,6 +159,12 @@
             return;
         }
         
+        // 检测页面中是否已有正常工作的图表
+        if (typeof window.echarts !== 'undefined' && document.querySelector('#pieChart canvas')) {
+            log('检测到页面中已有正常工作的图表，跳过修复', 'info');
+            return;
+        }
+        
         // 监听DOM变动以检测动态添加的图表
         setupMutationObserver();
         

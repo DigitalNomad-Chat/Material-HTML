@@ -402,9 +402,16 @@ function processHTMLFile(req, res, next) {
             body.includes('echarts.min.js') || 
             body.includes('chart.min.js') || 
             body.includes('highcharts.js');
+            
+          // 检查是否包含完整的图表初始化代码
+          const hasCompleteChartCode = 
+            body.includes('echarts.init') && 
+            body.includes('setOption') && 
+            body.includes('window.addEventListener(\'resize\'');
           
-          // 只有在检测到图表代码并且是编辑器预览时才注入修复脚本
-          if (hasChartCode || hasChartLibs) {
+          // 只有在检测到图表代码、是编辑器预览且不是完整图表代码时才注入修复脚本
+          // 如果HTML中已包含完整的图表初始化和响应式代码，则不注入修复脚本
+          if ((hasChartCode || hasChartLibs) && !hasCompleteChartCode) {
             console.log('[HTML处理] 检测到图表代码，注入修复脚本');
             
             // 在</head>标签前插入图表修复脚本
