@@ -277,13 +277,57 @@ function updatePreview() {
                             log('DOM观察器已启动');
                         }
                         
+                        // 判断元素是否是有效的图表容器
+                        function isValidChartContainer(element) {
+                            // 排除太小的元素 (小于100x100像素的元素可能不是图表容器)
+                            const rect = element.getBoundingClientRect();
+                            if (rect.width < 100 || rect.height < 100) {
+                                return false;
+                            }
+                            
+                            // 排除图标元素
+                            if (element.tagName.toLowerCase() === 'i' || 
+                                (element.tagName.toLowerCase() === 'span' && element.children.length === 0)) {
+                                return false;
+                            }
+                            
+                            // 排除包含特定类名的元素
+                            const classNames = element.className.toString().toLowerCase();
+                            const excludeClasses = ['icon', 'btn', 'button', 'fa-', 'header', 'logo', 'nav'];
+                            if (excludeClasses.some(cls => classNames.includes(cls))) {
+                                return false;
+                            }
+                            
+                            // 检查是否有父元素是图标或按钮
+                            let parent = element.parentElement;
+                            while (parent) {
+                                if (parent.tagName.toLowerCase() === 'button' || 
+                                    parent.className.toString().toLowerCase().includes('btn') ||
+                                    parent.className.toString().toLowerCase().includes('button')) {
+                                    return false;
+                                }
+                                parent = parent.parentElement;
+                            }
+                            
+                            return true;
+                        }
+                        
                         // 检测页面中的潜在图表元素
                         function checkForChartElements(rootElement = document) {
-                            // 查找可能的图表容器
-                            const chartElements = rootElement.querySelectorAll('[id*="chart"], [id*="Chart"], [class*="chart"], [class*="Chart"]');
+                            // 查找可能的图表容器，排除图标元素和其他不适合的元素
+                            const selectors = [
+                                '[id*="chart"]:not(.fa):not(.fas):not(.far):not(.fab):not(.fal):not(.fad):not(.icon):not(i):not(span):not(button)', 
+                                '[id*="Chart"]:not(.fa):not(.fas):not(.far):not(.fab):not(.fal):not(.fad):not(.icon):not(i):not(span):not(button)', 
+                                '[class*="chart"]:not(.fa):not(.fas):not(.far):not(.fab):not(.fal):not(.fad):not(.icon):not(i):not(span):not(button)', 
+                                '[class*="Chart"]:not(.fa):not(.fas):not(.far):not(.fab):not(.fal):not(.fad):not(.icon):not(i):not(span):not(button)'
+                            ];
+                            
+                            // 获取所有潜在容器并过滤
+                            const potentialElements = rootElement.querySelectorAll(selectors.join(', '));
+                            const chartElements = Array.from(potentialElements).filter(isValidChartContainer);
                             
                             if (chartElements.length > 0) {
-                                log('发现' + chartElements.length + '个潜在图表容器');
+                                log('发现' + chartElements.length + '个有效图表容器');
                                 
                                 // 为每个容器添加加载状态
                                 chartElements.forEach(function(element) {
@@ -738,7 +782,41 @@ function updatePreview() {
                 scriptWrapperTag.appendChild(tempDoc.createTextNode(`
                     // 为带有特定类名的容器添加加载指示器
                     document.addEventListener('DOMContentLoaded', function() {
-                        const chartContainers = document.querySelectorAll('[id*="chart"], [id*="Chart"], [class*="chart"], [class*="Chart"]');
+                        // 判断元素是否是有效的图表容器
+                        function isValidChartContainer(element) {
+                            // 排除太小的元素
+                            const rect = element.getBoundingClientRect();
+                            if (rect.width < 100 || rect.height < 100) {
+                                return false;
+                            }
+                            
+                            // 排除图标元素
+                            if (element.tagName.toLowerCase() === 'i' || 
+                                (element.tagName.toLowerCase() === 'span' && element.children.length === 0)) {
+                                return false;
+                            }
+                            
+                            // 排除包含特定类名的元素
+                            const classNames = element.className.toString().toLowerCase();
+                            const excludeClasses = ['icon', 'btn', 'button', 'fa-', 'header', 'logo', 'nav'];
+                            if (excludeClasses.some(cls => classNames.includes(cls))) {
+                                return false;
+                            }
+                            
+                            return true;
+                        }
+                        
+                        // 查找图表容器，排除图标元素
+                        const selectors = [
+                            '[id*="chart"]:not(.fa):not(.fas):not(.far):not(.fab):not(.fal):not(.fad):not(.icon):not(i):not(span):not(button)', 
+                            '[id*="Chart"]:not(.fa):not(.fas):not(.far):not(.fab):not(.fal):not(.fad):not(.icon):not(i):not(span):not(button)', 
+                            '[class*="chart"]:not(.fa):not(.fas):not(.far):not(.fab):not(.fal):not(.fad):not(.icon):not(i):not(span):not(button)', 
+                            '[class*="Chart"]:not(.fa):not(.fas):not(.far):not(.fab):not(.fal):not(.fad):not(.icon):not(i):not(span):not(button)'
+                        ];
+                        
+                        const potentialContainers = document.querySelectorAll(selectors.join(', '));
+                        const chartContainers = Array.from(potentialContainers).filter(isValidChartContainer);
+                        
                         chartContainers.forEach(container => {
                             // 确保容器有相对定位
                             const computedStyle = window.getComputedStyle(container);
@@ -766,7 +844,26 @@ function updatePreview() {
                                 
                                 // 尝试检测echarts或其他图表库的存在并在图表初始化后移除加载指示器
                                 setTimeout(function() {
-                                    const chartContainers = document.querySelectorAll('[id*="chart"], [id*="Chart"], [class*="chart"], [class*="Chart"]');
+                                    // 查找有效图表容器
+                                    const selectors = [
+                                        '[id*="chart"]:not(.fa):not(.fas):not(.far):not(.fab):not(.fal):not(.fad):not(.icon):not(i):not(span):not(button)', 
+                                        '[id*="Chart"]:not(.fa):not(.fas):not(.far):not(.fab):not(.fal):not(.fad):not(.icon):not(i):not(span):not(button)', 
+                                        '[class*="chart"]:not(.fa):not(.fas):not(.far):not(.fab):not(.fal):not(.fad):not(.icon):not(i):not(span):not(button)', 
+                                        '[class*="Chart"]:not(.fa):not(.fas):not(.far):not(.fab):not(.fal):not(.fad):not(.icon):not(i):not(span):not(button)'
+                                    ];
+                                    
+                                    // 过滤有效容器
+                                    function isValidChartContainer(element) {
+                                        const rect = element.getBoundingClientRect();
+                                        if (rect.width < 100 || rect.height < 100) return false;
+                                        if (element.tagName.toLowerCase() === 'i' || 
+                                            (element.tagName.toLowerCase() === 'span' && element.children.length === 0)) return false;
+                                        return true;
+                                    }
+                                    
+                                    const potentialContainers = document.querySelectorAll(selectors.join(', '));
+                                    const chartContainers = Array.from(potentialContainers).filter(isValidChartContainer);
+                                    
                                     chartContainers.forEach(container => {
                                         if (container.loadingIndicator) {
                                             container.loadingIndicator.style.display = 'none';
@@ -884,8 +981,39 @@ function updatePreview() {
                     
                     // 显示错误信息
                     showErrorMessage: function(libraryType) {
-                        // 查找图表容器并显示错误信息
-                        const containers = document.querySelectorAll('[id*="chart"], [id*="Chart"]');
+                        // 判断元素是否是有效的图表容器
+                        function isValidChartContainer(element) {
+                            // 排除太小的元素
+                            const rect = element.getBoundingClientRect();
+                            if (rect.width < 100 || rect.height < 100) {
+                                return false;
+                            }
+                            
+                            // 排除图标元素
+                            if (element.tagName.toLowerCase() === 'i' || 
+                                (element.tagName.toLowerCase() === 'span' && element.children.length === 0)) {
+                                return false;
+                            }
+                            
+                            // 排除包含特定类名的元素
+                            const classNames = element.className.toString().toLowerCase();
+                            const excludeClasses = ['icon', 'btn', 'button', 'fa-', 'header', 'logo', 'nav'];
+                            if (excludeClasses.some(cls => classNames.includes(cls))) {
+                                return false;
+                            }
+                            
+                            return true;
+                        }
+                        
+                        // 查找图表容器，排除图标元素
+                        const selectors = [
+                            '[id*="chart"]:not(.fa):not(.fas):not(.far):not(.fab):not(.fal):not(.fad):not(.icon):not(i):not(span):not(button)', 
+                            '[id*="Chart"]:not(.fa):not(.fas):not(.far):not(.fab):not(.fal):not(.fad):not(.icon):not(i):not(span):not(button)'
+                        ];
+                        
+                        const potentialContainers = document.querySelectorAll(selectors.join(', '));
+                        const containers = Array.from(potentialContainers).filter(isValidChartContainer);
+                        
                         containers.forEach(container => {
                             const errorMsg = document.createElement('div');
                             errorMsg.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;background:#fff;display:flex;align-items:center;justify-content:center;color:#ff4d4f;font-weight:bold;text-align:center;';
@@ -911,7 +1039,39 @@ function updatePreview() {
                         
                         // 根据库类型查找并执行初始化代码
                         if(event.detail.libraryType === 'echarts' && window.echarts) {
-                            const containers = document.querySelectorAll('[id*="chart"], [id*="Chart"]');
+                            // 判断元素是否是有效的图表容器
+                            function isValidChartContainer(element) {
+                                // 排除太小的元素
+                                const rect = element.getBoundingClientRect();
+                                if (rect.width < 100 || rect.height < 100) {
+                                    return false;
+                                }
+                                
+                                // 排除图标元素
+                                if (element.tagName.toLowerCase() === 'i' || 
+                                    (element.tagName.toLowerCase() === 'span' && element.children.length === 0)) {
+                                    return false;
+                                }
+                                
+                                // 排除包含特定类名的元素
+                                const classNames = element.className.toString().toLowerCase();
+                                const excludeClasses = ['icon', 'btn', 'button', 'fa-', 'header', 'logo', 'nav'];
+                                if (excludeClasses.some(cls => classNames.includes(cls))) {
+                                    return false;
+                                }
+                                
+                                return true;
+                            }
+                            
+                            // 查找图表容器，排除图标元素
+                            const selectors = [
+                                '[id*="chart"]:not(.fa):not(.fas):not(.far):not(.fab):not(.fal):not(.fad):not(.icon):not(i):not(span):not(button)', 
+                                '[id*="Chart"]:not(.fa):not(.fas):not(.far):not(.fab):not(.fal):not(.fad):not(.icon):not(i):not(span):not(button)'
+                            ];
+                            
+                            const potentialContainers = document.querySelectorAll(selectors.join(', '));
+                            const containers = Array.from(potentialContainers).filter(isValidChartContainer);
+                            
                             containers.forEach(container => {
                                 try {
                                     const chart = echarts.init(container);

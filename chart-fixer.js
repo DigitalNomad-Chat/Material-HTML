@@ -28,12 +28,12 @@
             ]
         },
         
-        // 图表容器查询选择器
+        // 图表容器查询选择器 - 排除图标元素和其他可能被误识别的元素
         containerSelectors: [
-            '[id*="chart"]', 
-            '[id*="Chart"]', 
-            '[class*="chart"]', 
-            '[class*="Chart"]'
+            '[id*="chart"]:not(.fa):not(.fas):not(.far):not(.fab):not(.fal):not(.fad):not(.icon):not(i):not(span):not(button)', 
+            '[id*="Chart"]:not(.fa):not(.fas):not(.far):not(.fab):not(.fal):not(.fad):not(.icon):not(i):not(span):not(button)', 
+            '[class*="chart"]:not(.fa):not(.fas):not(.far):not(.fab):not(.fal):not(.fad):not(.icon):not(i):not(span):not(button)', 
+            '[class*="Chart"]:not(.fa):not(.fas):not(.far):not(.fab):not(.fal):not(.fad):not(.icon):not(i):not(span):not(button)'
         ],
         
         // 延迟时间
@@ -46,6 +46,41 @@
     
     // 图表容器实例跟踪
     const chartInstances = {};
+    
+    // 判断元素是否是有效的图表容器
+    function isValidChartContainer(element) {
+        // 排除太小的元素 (小于100x100像素的元素可能不是图表容器)
+        const rect = element.getBoundingClientRect();
+        if (rect.width < 100 || rect.height < 100) {
+            return false;
+        }
+        
+        // 排除图标元素
+        if (element.tagName.toLowerCase() === 'i' || 
+            (element.tagName.toLowerCase() === 'span' && element.children.length === 0)) {
+            return false;
+        }
+        
+        // 排除包含特定类名的元素
+        const classNames = element.className.toString().toLowerCase();
+        const excludeClasses = ['icon', 'btn', 'button', 'fa-', 'header', 'logo', 'nav'];
+        if (excludeClasses.some(cls => classNames.includes(cls))) {
+            return false;
+        }
+        
+        // 检查是否有父元素是图标或按钮
+        let parent = element.parentElement;
+        while (parent) {
+            if (parent.tagName.toLowerCase() === 'button' || 
+                parent.className.toString().toLowerCase().includes('btn') ||
+                parent.className.toString().toLowerCase().includes('button')) {
+                return false;
+            }
+            parent = parent.parentElement;
+        }
+        
+        return true;
+    }
     
     // 主函数: 检测并修复图表
     function init() {
@@ -69,14 +104,17 @@
         console.log('[图表修复] 开始检测图表...');
         
         // 查找所有可能的图表容器
-        const containers = document.querySelectorAll(config.containerSelectors.join(', '));
+        const potentialContainers = document.querySelectorAll(config.containerSelectors.join(', '));
+        
+        // 过滤掉不适合作为图表容器的元素
+        const containers = Array.from(potentialContainers).filter(isValidChartContainer);
         
         if (containers.length === 0) {
-            console.log('[图表修复] 未检测到图表容器');
+            console.log('[图表修复] 未检测到有效图表容器');
             return;
         }
         
-        console.log(`[图表修复] 检测到 ${containers.length} 个潜在图表容器`);
+        console.log(`[图表修复] 检测到 ${containers.length} 个有效图表容器`);
         
         // 检查常用图表库是否已加载
         const libraries = {

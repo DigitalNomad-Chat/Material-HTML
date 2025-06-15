@@ -376,14 +376,59 @@ async function deployWebsite() {
                     chartFixScript.appendChild(tempDoc.createTextNode(`
                         // 智能图表修复脚本
                         (function() {
+                            // 判断元素是否是有效的图表容器
+                            function isValidChartContainer(element) {
+                                // 排除太小的元素 (小于100x100像素的元素可能不是图表容器)
+                                const rect = element.getBoundingClientRect();
+                                if (rect.width < 100 || rect.height < 100) {
+                                    return false;
+                                }
+                                
+                                // 排除图标元素
+                                if (element.tagName.toLowerCase() === 'i' || 
+                                    (element.tagName.toLowerCase() === 'span' && element.children.length === 0)) {
+                                    return false;
+                                }
+                                
+                                // 排除包含特定类名的元素
+                                const classNames = element.className.toString().toLowerCase();
+                                const excludeClasses = ['icon', 'btn', 'button', 'fa-', 'header', 'logo', 'nav'];
+                                if (excludeClasses.some(cls => classNames.includes(cls))) {
+                                    return false;
+                                }
+                                
+                                // 检查是否有父元素是图标或按钮
+                                let parent = element.parentElement;
+                                while (parent) {
+                                    if (parent.tagName.toLowerCase() === 'button' || 
+                                        parent.className.toString().toLowerCase().includes('btn') ||
+                                        parent.className.toString().toLowerCase().includes('button')) {
+                                        return false;
+                                    }
+                                    parent = parent.parentElement;
+                                }
+                                
+                                return true;
+                            }
+                            
                             // 在页面加载完成后延迟初始化图表
                             window.addEventListener('load', function() {
                                 setTimeout(function() {
-                                    // 查找所有图表容器
-                                    const chartContainers = document.querySelectorAll('[id*="chart"], [id*="Chart"], [class*="chart"], [class*="Chart"]');
+                                    // 查找所有图表容器，排除图标元素和其他不适合的元素
+                                    const selectors = [
+                                        '[id*="chart"]:not(.fa):not(.fas):not(.far):not(.fab):not(.fal):not(.fad):not(.icon):not(i):not(span):not(button)', 
+                                        '[id*="Chart"]:not(.fa):not(.fas):not(.far):not(.fab):not(.fal):not(.fad):not(.icon):not(i):not(span):not(button)', 
+                                        '[class*="chart"]:not(.fa):not(.fas):not(.far):not(.fab):not(.fal):not(.fad):not(.icon):not(i):not(span):not(button)', 
+                                        '[class*="Chart"]:not(.fa):not(.fas):not(.far):not(.fab):not(.fal):not(.fad):not(.icon):not(i):not(span):not(button)'
+                                    ];
+                                    
+                                    // 获取所有潜在容器并过滤
+                                    const potentialContainers = document.querySelectorAll(selectors.join(', '));
+                                    const chartContainers = Array.from(potentialContainers).filter(isValidChartContainer);
+                                    
                                     if (chartContainers.length === 0) return;
                                     
-                                    console.log('[图表修复] 找到', chartContainers.length, '个图表容器');
+                                    console.log('[图表修复] 找到', chartContainers.length, '个有效图表容器');
                                     
                                     // 如果已加载ECharts但图表没有初始化，尝试初始化
                                     if (typeof window.echarts !== 'undefined') {
