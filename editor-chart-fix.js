@@ -1,10 +1,43 @@
 /**
  * 编辑器环境专用图表修复脚本
  * 解决在Material HTML编辑器预览中的图表问题
- * V1.0
+ * V1.1 - 生产环境优化版
  */
 (function() {
-    console.log('[编辑器图表修复] 脚本已加载');
+    // 检查全局配置
+    if (!window.__CHART_FIXER_CONFIG__) {
+        window.__CHART_FIXER_CONFIG__ = {
+            enabled: true,
+            isEditor: true,
+            debug: false,
+            supportedLibraries: ['echarts', 'highcharts', 'chart.js', 'plotly'],
+            version: '1.0.0'
+        };
+    }
+    
+    // 使用全局配置中的调试设置
+    const useDebug = window.__CHART_FIXER_CONFIG__.debug;
+    
+    // 日志函数
+    function log(message, type = 'log') {
+        if (useDebug) {
+            console[type](`[编辑器图表修复] ${message}`);
+        }
+    }
+    
+    log('脚本已加载');
+    
+    // 检查是否禁用了图表修复
+    if (window.__CHART_FIXER_CONFIG__.enabled === false) {
+        log('图表修复已被全局禁用，跳过修复流程', 'warn');
+        return;
+    }
+    
+    // 兼容旧版禁用标记
+    if (window.__DISABLE_CHART_FIXER__) {
+        log('图表修复已被禁用(旧版标记)，跳过修复流程', 'warn');
+        return;
+    }
     
     // 保存原始的echarts对象
     let originalECharts = window.echarts;
@@ -15,6 +48,41 @@
         
         window.echarts.init = function(dom, theme, opts) {
             try {
+                // 首先检查是否已经有图表实例，如果有则直接返回该实例
+                if (dom && typeof dom.getAttribute === 'function') {
+                    try {
+                        const existingInstance = originalECharts.getInstanceByDom(dom);
+                        if (existingInstance) {
+                            console.log('[编辑器图表修复] 容器已有图表实例，直接返回');
+                            return existingInstance;
+                        }
+                    } catch (e) {
+                        // 忽略错误
+                    }
+                    
+                    // 检查容器内部是否已有图表元素
+                    const hasCanvas = dom.querySelector('canvas');
+                    const hasSvg = dom.querySelector('svg');
+                    if (hasCanvas || hasSvg) {
+                        console.log('[编辑器图表修复] 容器已有图表元素，跳过重新初始化');
+                        // 返回一个模拟的图表对象，避免重复初始化
+                        return {
+                            setOption: function(option) { 
+                                console.log('[编辑器图表修复] 跳过已存在图表的setOption调用'); 
+                                return this;
+                            },
+                            resize: function() { return this; },
+                            dispose: function() { return this; },
+                            getWidth: function() { return dom.clientWidth; },
+                            getHeight: function() { return dom.clientHeight; },
+                            getDom: function() { return dom; },
+                            getOption: function() { return {}; },
+                            on: function() { return this; },
+                            off: function() { return this; }
+                        };
+                    }
+                }
+                
                 // 检查dom是否有效
                 if (!dom || typeof dom.getAttribute !== 'function') {
                     console.warn('[编辑器图表修复] 无效的DOM元素，尝试查找替代容器');
@@ -48,9 +116,9 @@
                 
                 // 返回一个模拟的图表对象，避免后续错误
                 return {
-                    setOption: function() { console.log('[编辑器图表修复] 模拟setOption调用'); },
-                    resize: function() { console.log('[编辑器图表修复] 模拟resize调用'); },
-                    dispose: function() { console.log('[编辑器图表修复] 模拟dispose调用'); },
+                    setOption: function() { console.log('[编辑器图表修复] 模拟setOption调用'); return this; },
+                    resize: function() { console.log('[编辑器图表修复] 模拟resize调用'); return this; },
+                    dispose: function() { console.log('[编辑器图表修复] 模拟dispose调用'); return this; },
                     getWidth: function() { return 0; },
                     getHeight: function() { return 0; },
                     getDom: function() { return null; },

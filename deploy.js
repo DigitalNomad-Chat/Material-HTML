@@ -368,91 +368,9 @@ async function deployWebsite() {
                           src.includes('d3');
                 });
                 
-                // 如果检测到图表代码，添加图表修复脚本
-                if (hasChartCode || hasChartLibLink) {
-                    // 添加图表修复脚本
-                    const chartFixScript = tempDoc.createElement('script');
-                    chartFixScript.setAttribute('data-chart-fixer', 'true');
-                    chartFixScript.appendChild(tempDoc.createTextNode(`
-                        // 智能图表修复脚本
-                        (function() {
-                            // 判断元素是否是有效的图表容器
-                            function isValidChartContainer(element) {
-                                // 排除太小的元素 (小于100x100像素的元素可能不是图表容器)
-                                const rect = element.getBoundingClientRect();
-                                if (rect.width < 100 || rect.height < 100) {
-                                    return false;
-                                }
-                                
-                                // 排除图标元素
-                                if (element.tagName.toLowerCase() === 'i' || 
-                                    (element.tagName.toLowerCase() === 'span' && element.children.length === 0)) {
-                                    return false;
-                                }
-                                
-                                // 排除包含特定类名的元素
-                                const classNames = element.className.toString().toLowerCase();
-                                const excludeClasses = ['icon', 'btn', 'button', 'fa-', 'header', 'logo', 'nav'];
-                                if (excludeClasses.some(cls => classNames.includes(cls))) {
-                                    return false;
-                                }
-                                
-                                // 检查是否有父元素是图标或按钮
-                                let parent = element.parentElement;
-                                while (parent) {
-                                    if (parent.tagName.toLowerCase() === 'button' || 
-                                        parent.className.toString().toLowerCase().includes('btn') ||
-                                        parent.className.toString().toLowerCase().includes('button')) {
-                                        return false;
-                                    }
-                                    parent = parent.parentElement;
-                                }
-                                
-                                return true;
-                            }
-                            
-                            // 在页面加载完成后延迟初始化图表
-                            window.addEventListener('load', function() {
-                                setTimeout(function() {
-                                    // 查找所有图表容器，排除图标元素和其他不适合的元素
-                                    const selectors = [
-                                        '[id*="chart"]:not(.fa):not(.fas):not(.far):not(.fab):not(.fal):not(.fad):not(.icon):not(i):not(span):not(button)', 
-                                        '[id*="Chart"]:not(.fa):not(.fas):not(.far):not(.fab):not(.fal):not(.fad):not(.icon):not(i):not(span):not(button)', 
-                                        '[class*="chart"]:not(.fa):not(.fas):not(.far):not(.fab):not(.fal):not(.fad):not(.icon):not(i):not(span):not(button)', 
-                                        '[class*="Chart"]:not(.fa):not(.fas):not(.far):not(.fab):not(.fal):not(.fad):not(.icon):not(i):not(span):not(button)'
-                                    ];
-                                    
-                                    // 获取所有潜在容器并过滤
-                                    const potentialContainers = document.querySelectorAll(selectors.join(', '));
-                                    const chartContainers = Array.from(potentialContainers).filter(isValidChartContainer);
-                                    
-                                    if (chartContainers.length === 0) return;
-                                    
-                                    console.log('[图表修复] 找到', chartContainers.length, '个有效图表容器');
-                                    
-                                    // 如果已加载ECharts但图表没有初始化，尝试初始化
-                                    if (typeof window.echarts !== 'undefined') {
-                                        chartContainers.forEach(function(container) {
-                                            if (!container._echarts_instance_) {
-                                                try {
-                                                    console.log('[图表修复] 尝试初始化图表:', container.id);
-                                                    const chart = echarts.init(container);
-                                                } catch(e) {
-                                                    console.error('[图表修复] 初始化失败:', e);
-                                                }
-                                            }
-                                        });
-                                    }
-                                }, 1000);
-                            });
-                        })();
-                    `));
-                    
-                    // 添加到head的开头，确保先加载
-                    if (head) {
-                        head.insertBefore(chartFixScript, head.firstChild);
-                    }
-                }
+                // 完全禁用图表修复脚本注入，让图表在部署预览中正常工作
+                // 不再向部署的HTML中注入任何修复脚本，避免干扰正常工作的图表
+                console.log('检测到图表代码，但已禁用修复脚本注入，以确保部署预览中图表正常工作');
                 
                 if (body && jsContent.trim() !== "") {
                     Array.from(body.querySelectorAll('script[data-editor-injected="true"]')).forEach(s => s.remove());
@@ -504,6 +422,43 @@ async function deployWebsite() {
                 existingNote.innerHTML = noteElement.innerHTML;
             } else {
                 deploySuccess.appendChild(noteElement);
+            }
+            
+            // 检查是否包含图表代码，如果包含则添加额外提示
+            const hasChartCode = 
+                htmlContent.includes('echarts') || 
+                htmlContent.includes('chart') || 
+                htmlContent.includes('Chart') ||
+                htmlContent.includes('highcharts') ||
+                htmlContent.includes('plotly') ||
+                htmlContent.includes('d3') ||
+                jsContent.includes('echarts') ||
+                jsContent.includes('chart') ||
+                jsContent.includes('Chart') ||
+                jsContent.includes('highcharts') ||
+                jsContent.includes('plotly') ||
+                jsContent.includes('d3');
+                
+            if (hasChartCode) {
+                const chartTipElement = document.createElement('div');
+                chartTipElement.className = 'chart-display-tip';
+                chartTipElement.style.marginTop = '15px';
+                chartTipElement.style.padding = '10px 15px';
+                chartTipElement.style.backgroundColor = '#FFF9E6';
+                chartTipElement.style.border = '1px solid #FFE58F';
+                chartTipElement.style.borderRadius = '4px';
+                chartTipElement.style.fontSize = '14px';
+                
+                chartTipElement.innerHTML = `
+                    <div style="font-weight: bold; margin-bottom: 8px;">图表显示提示：</div>
+                    <p style="margin: 5px 0;">检测到您的网站包含图表代码，如果图表未能正常显示，请尝试：</p>
+                    <ol style="margin: 8px 0; padding-left: 20px;">
+                        <li style="margin-bottom: 5px;">更换浏览器打开（部分浏览器广告插件可能拦截图表组件）</li>
+                        <li style="margin-bottom: 5px;">如果仍然不显示，可以尝试更换国内组件源</li>
+                    </ol>
+                `;
+                
+                deploySuccess.appendChild(chartTipElement);
             }
         }
         

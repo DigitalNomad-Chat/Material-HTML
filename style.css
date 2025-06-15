@@ -640,7 +640,8 @@ body.resizing .splitter-vertical {
     margin-bottom: 16px;
 }
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 .deploy-success, .deploy-error {
     text-align: center;
@@ -821,5 +822,100 @@ body.resizing .splitter-vertical {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 预览通知弹窗样式 */
+.preview-notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 320px;
+    max-width: 90vw;
+    background-color: var(--surface-color);
+    border-radius: 8px;
+    box-shadow: var(--shadow-elevation-8dp);
+    z-index: 9999;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.preview-notification.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.preview-notification.closing {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.notification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background-color: var(--primary-color);
+    color: var(--on-primary-color);
+}
+
+.notification-title {
+    font-weight: 500;
+    font-size: 16px;
+}
+
+.notification-close {
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+}
+
+.notification-close:hover {
+    opacity: 1;
+}
+
+.notification-body {
+    padding: 12px 16px;
+    color: var(--on-surface-color);
+}
+
+.notification-body p {
+    margin: 8px 0;
+}
+
+.notification-body ol {
+    margin: 8px 0;
+    padding-left: 24px;
+}
+
+.notification-body li {
+    margin-bottom: 4px;
+}
+
+/* 移动端适配 */
+@media (max-width: 600px) {
+    .preview-notification {
+        bottom: 10px;
+        right: 10px;
+        left: 10px;
+        width: auto;
+    }
+    
+    .notification-header {
+        padding: 10px 12px;
+    }
+    
+    .notification-title {
+        font-size: 14px;
+    }
+    
+    .notification-body {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
 }

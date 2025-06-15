@@ -6,6 +6,12 @@
 (function() {
     console.log('[复杂图表修复] 脚本已加载');
     
+    // 检查是否禁用了图表修复
+    if (window.__DISABLE_CHART_FIXER__) {
+        console.log('[复杂图表修复] 图表修复已被禁用，跳过修复流程');
+        return;
+    }
+    
     // 配置
     const config = {
         debug: true,
@@ -185,10 +191,46 @@
         // 检查哪些容器是空的
         chartContainers.forEach(container => {
             // 检查容器是否已经有图表实例
+            try {
+                // 首先尝试使用echarts API检查实例
+                const instance = echarts.getInstanceByDom(container);
+                if (instance) {
+                    log(`容器 ${container.id || '(无ID)'} 已有ECharts实例，跳过创建`);
+                    return; // 跳过此容器
+                }
+            } catch (e) {
+                // 忽略错误
+            }
+            
             const hasCanvas = container.querySelector('canvas');
             const hasChartDiv = container.querySelector('div[_echarts_instance_]');
+            const hasSvg = container.querySelector('svg');
             
-            if (!hasCanvas && !hasChartDiv && isValidChartContainer(container)) {
+            // 检查是否有可见的图表元素
+            if (hasCanvas || hasChartDiv || hasSvg) {
+                // 进一步检查元素是否有实际内容（非空白）
+                if ((hasCanvas && hasCanvas.width > 5 && hasCanvas.height > 5) || 
+                    (hasSvg && hasSvg.getBoundingClientRect().width > 5)) {
+                    log(`容器 ${container.id || '(无ID)'} 已有图表元素，跳过创建`);
+                    return; // 跳过此容器
+                }
+            }
+            
+            // 检查容器是否有内联样式指定的宽高
+            const style = window.getComputedStyle(container);
+            if (parseInt(style.width) < 10 || parseInt(style.height) < 10) {
+                log(`容器 ${container.id || '(无ID)'} 尺寸过小，可能不是图表容器`);
+                return; // 跳过尺寸过小的容器
+            }
+            
+            // 检查容器是否可见
+            const rect = container.getBoundingClientRect();
+            if (rect.width === 0 || rect.height === 0) {
+                log(`容器 ${container.id || '(无ID)'} 不可见，跳过创建`);
+                return; // 跳过不可见的容器
+            }
+            
+            if (isValidChartContainer(container)) {
                 emptyContainers.push(container);
             }
         });

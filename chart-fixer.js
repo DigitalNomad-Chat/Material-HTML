@@ -1,10 +1,24 @@
 /**
  * 图表自动修复组件增强版
  * 解决各种AI生成的图表代码在预览中的加载与显示问题
- * V2.0
+ * V2.1 - 生产环境优化版
  */
 (function() {
-    console.log('[图表修复] 增强版脚本已加载');
+    // 检查全局配置
+    if (!window.__CHART_FIXER_CONFIG__) {
+        window.__CHART_FIXER_CONFIG__ = {
+            enabled: true,
+            isEditor: false,
+            debug: false,
+            supportedLibraries: ['echarts', 'highcharts', 'chart.js', 'plotly'],
+            version: '1.0.0'
+        };
+    }
+    
+    // 使用全局配置中的调试设置
+    const useDebug = window.__CHART_FIXER_CONFIG__.debug;
+    
+    console.log('[图表修复] 增强版脚本已加载 ' + (window.__CHART_FIXER_CONFIG__.isEditor ? '(编辑器环境)' : '(预览环境)'));
     
     // 配置
     const config = {
@@ -82,8 +96,8 @@
             ]
         },
         
-        // 调试模式
-        debug: true
+        // 调试模式 - 使用全局配置
+        debug: useDebug
     };
     
     // 图表容器实例跟踪
@@ -133,6 +147,18 @@
     
     // 主函数: 检测并修复图表
     function init() {
+        // 检查是否禁用了图表修复
+        if (window.__CHART_FIXER_CONFIG__ && window.__CHART_FIXER_CONFIG__.enabled === false) {
+            log('图表修复已被全局禁用，跳过修复流程', 'warn');
+            return;
+        }
+        
+        // 兼容旧版禁用标记
+        if (window.__DISABLE_CHART_FIXER__) {
+            log('图表修复已被禁用(旧版标记)，跳过修复流程', 'warn');
+            return;
+        }
+        
         // 监听DOM变动以检测动态添加的图表
         setupMutationObserver();
         
@@ -240,8 +266,57 @@
         const inlineScripts = Array.from(document.querySelectorAll('script:not([src])'));
         let chartConfigs = extractChartConfigsFromScripts(inlineScripts);
         
-        // 为每个容器添加加载状态
-        containers.forEach(container => {
+        // 检查容器是否已经初始化了图表
+        const containersNeedingFix = containers.filter(container => {
+            // 检查ECharts实例
+            if (libraries.echarts && window.echarts) {
+                try {
+                    // 尝试获取容器上的ECharts实例
+                    const instance = window.echarts.getInstanceByDom(container);
+                    if (instance) {
+                        log(`容器 ${container.id || '(无ID)'} 已有ECharts实例，跳过修复`);
+                        // 标记为已处理，避免再次修复
+                        container._chartProcessed = true;
+                        return false;
+                    }
+                } catch (e) {
+                    // 忽略错误
+                }
+            }
+            
+            // 检查Chart.js实例
+            if (libraries.chartjs && window.Chart) {
+                // Chart.js没有直接的实例获取方法，使用数据属性检查
+                if (container.__chartjs__) {
+                    log(`容器 ${container.id || '(无ID)'} 已有Chart.js实例，跳过修复`);
+                    container._chartProcessed = true;
+                    return false;
+                }
+            }
+            
+            // 检查容器内部是否已有SVG或Canvas元素（可能表示图表已渲染）
+            const hasSvg = container.querySelector('svg');
+            const hasCanvas = container.querySelector('canvas');
+            if ((hasSvg && hasSvg.getBoundingClientRect().width > 0) || 
+                (hasCanvas && hasCanvas.getBoundingClientRect().width > 0)) {
+                log(`容器 ${container.id || '(无ID)'} 已有图表元素，跳过修复`);
+                container._chartProcessed = true;
+                return false;
+            }
+            
+            return true;
+        });
+        
+        // 如果所有容器都已初始化，直接返回
+        if (containersNeedingFix.length === 0) {
+            log('所有图表容器已初始化，无需修复');
+            return;
+        }
+        
+        log(`${containersNeedingFix.length}/${containers.length} 个容器需要修复`);
+        
+        // 为每个需要修复的容器添加加载状态
+        containersNeedingFix.forEach(container => {
             // 检查这个容器是否已经有图表了
             if (!container._chartPrepared) {
                 prepareContainer(container);
@@ -250,32 +325,32 @@
         
         // 如果有图表库引用但未加载成功，尝试加载
         if (libraryReferences.echarts && !libraries.echarts) {
-            loadLibrary('echarts', () => processContainers(containers, 'echarts', chartConfigs));
+            loadLibrary('echarts', () => processContainers(containersNeedingFix, 'echarts', chartConfigs));
         } else if (libraries.echarts) {
-            processContainers(containers, 'echarts', chartConfigs);
+            processContainers(containersNeedingFix, 'echarts', chartConfigs);
         }
         
         if (libraryReferences.chartjs && !libraries.chartjs) {
-            loadLibrary('chartjs', () => processContainers(containers, 'chartjs', chartConfigs));
+            loadLibrary('chartjs', () => processContainers(containersNeedingFix, 'chartjs', chartConfigs));
         } else if (libraries.chartjs) {
-            processContainers(containers, 'chartjs', chartConfigs);
+            processContainers(containersNeedingFix, 'chartjs', chartConfigs);
         }
         
         if (libraryReferences.highcharts && !libraries.highcharts) {
-            loadLibrary('highcharts', () => processContainers(containers, 'highcharts', chartConfigs));
+            loadLibrary('highcharts', () => processContainers(containersNeedingFix, 'highcharts', chartConfigs));
         } else if (libraries.highcharts) {
-            processContainers(containers, 'highcharts', chartConfigs);
+            processContainers(containersNeedingFix, 'highcharts', chartConfigs);
         }
         
         // 如果没有检测到图表库但有容器，尝试加载ECharts作为默认库
-        if (!libraryReferences.echarts && !libraryReferences.chartjs && !libraryReferences.highcharts && containers.length > 0) {
+        if (!libraryReferences.echarts && !libraryReferences.chartjs && !libraryReferences.highcharts && containersNeedingFix.length > 0) {
             log('未检测到图表库，尝试加载ECharts作为默认库');
-            loadLibrary('echarts', () => processContainers(containers, 'echarts', chartConfigs));
+            loadLibrary('echarts', () => processContainers(containersNeedingFix, 'echarts', chartConfigs));
         }
         
         // 最后的兜底：如果所有尝试都失败，显示错误信息
         setTimeout(() => {
-            containers.forEach(container => {
+            containersNeedingFix.forEach(container => {
                 // 如果容器还在加载状态，显示错误
                 if (container._chartLoading && !container._chartProcessed) {
                     showError(container, '无法加载或初始化图表，请检查控制台获取详细信息');
