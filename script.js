@@ -19,76 +19,433 @@ const DEFAULT_HTML = `<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>示例页面</title>
+    <title>Material HTML 编辑器</title>
+    <!-- 引入Google字体 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- 引入图标 -->
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { 
-            font-family: 'Roboto', sans-serif; 
-            margin: 20px; 
-            background-color: #f4f7f9; 
-            color: #333;
-            line-height: 1.6;
+        :root {
+            --primary: #1A73E8;
+            --primary-dark: #0d47a1;
+            --primary-light: #e3f2fd;
+            --accent: #ff4081;
+            --text: #202124;
+            --text-secondary: #5f6368;
+            --background: #f8f9fa;
+            --card-bg: #ffffff;
+            --border: #dadce0;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
+            --shadow-lg: 0 10px 20px rgba(0,0,0,0.15), 0 3px 6px rgba(0,0,0,0.1);
+            --anim: cubic-bezier(0.4, 0, 0.2, 1);
         }
-        h1 { color: #1A73E8; /* Google Blue */ }
-        p { margin-bottom: 10px; }
-        button {
-            padding: 8px 15px;
-            background-color: #1A73E8; /* Google Blue */
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body { 
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 0;
+            margin: 0;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            transform: rotate(30deg);
+        }
+        
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .tagline {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: var(--shadow-sm);
+            padding: 2rem;
+            margin: 2rem 0;
+            transition: transform 0.3s var(--anim), box-shadow 0.3s var(--anim);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        h1 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+        
+        h2 {
+            color: var(--primary);
+            margin: 1.5rem 0 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        h2 i {
+            font-size: 1.2rem;
+        }
+        
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: var(--shadow-sm);
+            padding: 1.5rem;
+            transition: transform 0.3s var(--anim), box-shadow 0.3s var(--anim);
+            border-top: 3px solid var(--primary);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .feature-icon {
+            background-color: var(--primary-light);
+            color: var(--primary);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .feature-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background-color: var(--primary);
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 3px 1px -2px rgba(0,0,0,0.12), 0 1px 5px 0 rgba(0,0,0,0.20);
-            transition: box-shadow 0.2s ease, background-color 0.2s ease;
+            font-weight: 500;
+            font-size: 1rem;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s var(--anim);
+            text-decoration: none;
         }
-        button:hover {
-            background-color: #1256a8; /* Darker Google Blue */
-            box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.20);
+        
+        .btn:hover {
+            background-color: var(--primary-dark);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+        
+        .btn-accent {
+            background-color: var(--accent);
+        }
+        
+        .btn-accent:hover {
+            background-color: #e91e63;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin: 1.5rem 0;
+        }
+        
+        a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: color 0.2s var(--anim);
+        }
+        
+        a:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+        
+        .demo-section {
+            background-color: var(--primary-light);
+            padding: 2rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+        }
+        
+        .code-preview {
+            background-color: #282c34;
+            color: #abb2bf;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            font-family: monospace;
+        }
+        
+        footer {
+            background-color: var(--primary-dark);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 3rem;
+        }
+        
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .social-link {
+            color: white;
+            font-size: 1.5rem;
+            transition: transform 0.2s var(--anim);
+        }
+        
+        .social-link:hover {
+            transform: translateY(-3px);
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            background-color: rgba(0,0,0,0.8);
+            color: white;
+            text-align: center;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            white-space: nowrap;
+        }
+        
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            header {
+                padding: 2rem 1rem;
+            }
+            
+            .features {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>欢迎来到 Material 编辑器!</h1>
-    <p>这是一个 AI+编程 实践项目，网站代码完全由AI生成</p>
-    <p>市面上同类产品没一个符合自己需求的，于是干脆用AI手搓一个！</p>
-    <p>在这里编写您的HTML, CSS, 和 JavaScript 代码。</p>
-    <p>预览会自动更新。 CSS 和 JS 编辑器默认折叠，点击可展开。</p>
-    <p>您可以下载按不同比例下载预览图，确保导出的图片高清质量。</p>
-    <p>更多 AI 实践项目请关注 <a href="https://www.prowork.top" target="_blank">职场人的高效办公神器 www.prowork.top</a></p>
-    <button onclick="showMessage()">点击测试JS</button>
+    <header>
+        <div class="logo"><i class="fas fa-code"></i> Material HTML 编辑器</div>
+        <div class="tagline">AI构建的现代化HTML编辑与预览工具</div>
+    </header>
+    
+    <div class="container">
+        <div class="card">
+            <h1><i class="fas fa-star"></i> 欢迎使用 Material 编辑器!</h1>
+            <p>这是一个由AI构建的现代化编程工具，帮助您轻松预览精美的网页设计。无论您是专业开发者还是办公达人，都能轻松调试你的精美设计。</p>
+            
+            <div class="btn-group">
+                <button class="btn" onclick="showMessage()"><i class="fas fa-play"></i> 支持网页交互</button>
+                <button class="btn btn-accent"><i class="fas fa-download"></i> 支持一键部署</button>
+            </div>
+        </div>
+        
+        <h2><i class="fas fa-lightbulb"></i> 核心功能</h2>
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-paint-brush"></i></div>
+                <div class="feature-title">实时预览</div>
+                <p>编写代码的同时，实时查看效果，提高开发效率。</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-robot"></i></div>
+                <div class="feature-title">下载预览图</div>
+                <p>支持自定义比例导出预览图，轻松导出精美大图。</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-mobile-alt"></i></div>
+                <div class="feature-title">部署网站</div>
+                <p>一键部署网站，轻松将网页设计分享给他人。</p>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2><i class="fas fa-code"></i> 快速上手</h2>
+            <p>在编辑器中编写您的HTML, CSS和JavaScript代码，预览窗口会自动更新显示效果。</p>
+            <div class="code-preview">
+                &lt;!-- HTML 示例 --&gt;<br>
+                &lt;div class="card"&gt;<br>
+                &nbsp;&nbsp;&lt;h2&gt;Hello World!&lt;/h2&gt;<br>
+                &nbsp;&nbsp;&lt;p&gt;这是我的第一个项目&lt;/p&gt;<br>
+                &lt;/div&gt;
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2><i class="fas fa-question-circle"></i> 常见问题</h2>
+            <p>这是一个AI编程实践项目，网站设计与功能代码实现全部由AI生成。</p>
+            <p>更多 AI 实践项目请关注 <a href="https://www.prowork.top" target="_blank">职场人的高效办公神器 <i class="fas fa-external-link-alt"></i></a></p>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Material HTML 编辑器 &copy; 2025 | PROWORK团队打造</p>
+        <div class="social-links">
+            <a href="#" class="social-link tooltip">
+                <i class="fab fa-github"></i>
+                <span class="tooltip-text">GitHub</span>
+            </a>
+            <a href="#" class="social-link tooltip">
+                <i class="fab fa-twitter"></i>
+                <span class="tooltip-text">Twitter</span>
+            </a>
+            <a href="#" class="social-link tooltip">
+                <i class="fab fa-weixin"></i>
+                <span class="tooltip-text">微信</span>
+            </a>
+        </div>
+    </footer>
 
     <script>
+        // 页面加载完成后的动画效果
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.card, .feature-card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 100 * index);
+            });
+        });
+        
+        // 测试按钮点击事件
         function showMessage() {
-            alert('JavaScript 运行成功!');
+            // 创建一个现代化的提示框
+            const toast = document.createElement('div');
+            toast.style.position = 'fixed';
+            toast.style.bottom = '20px';
+            toast.style.right = '20px';
+            toast.style.backgroundColor = '#323232';
+            toast.style.color = 'white';
+            toast.style.padding = '12px 24px';
+            toast.style.borderRadius = '4px';
+            toast.style.boxShadow = '0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)';
+            toast.style.zIndex = '1000';
+            toast.style.transform = 'translateY(100px)';
+            toast.style.opacity = '0';
+            toast.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+            toast.innerHTML = '<i class="fas fa-check-circle" style="margin-right: 8px;"></i> JavaScript 运行成功!';
+            
+            document.body.appendChild(toast);
+            
+            // 显示提示框
+            setTimeout(() => {
+                toast.style.transform = 'translateY(0)';
+                toast.style.opacity = '1';
+            }, 100);
+            
+            // 3秒后隐藏
+            setTimeout(() => {
+                toast.style.transform = 'translateY(100px)';
+                toast.style.opacity = '0';
+                
+                // 移除元素
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, 3000);
+            
+            console.log("测试按钮被点击");
         }
-        console.log("示例 JS 已加载");
-    <\/script>
+        
+        console.log("Material HTML 编辑器已加载");
+    </script>
 </body>
-</html>`;
-const DEFAULT_CSS = `/* CSS (默认折叠) */
-body {
-    /* 预览区内的背景已在HTML的style中设置，这里可以添加更多 */
-    padding: 15px;
-    box-sizing: border-box; /* Better box model for padding */
-}
-h1 {
-    border-bottom: 2px solid #1A73E8; /* Google Blue */
-    padding-bottom: 5px;
-    font-weight: 500; /* Material-like heading */
-}
-p {
-    font-size: 16px; /* Material body text size */
-}
-`;
-const DEFAULT_JS = `// JavaScript (默认折叠)
-console.log("JavaScript 编辑器已准备就绪!");
-
-document.addEventListener('DOMContentLoaded', () => {
-    const pageTitle = document.querySelector('h1');
-    if (pageTitle) {
-        // Example of dynamic interaction
-        // pageTitle.textContent += " (JS 已激活!)";
-    }
-});
+</html>
 `;
 
 let conditionalClearDialogShown = false;
