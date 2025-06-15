@@ -14,10 +14,6 @@ let isDragging = false;
 let lastRenderTime = 0;
 const RENDER_THROTTLE = 16; // 约60fps
 
-// 添加预览提示相关变量
-let previewNotificationTimeout = null;
-let hasShownPreviewNotification = false;
-
 const DEFAULT_HTML = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -283,7 +279,7 @@ function updatePreview() {
                                     dom.style.width = '100%';
                                     dom.style.height = '300px';
                                     document.body.appendChild(dom);
-                                }
+            }
                             }
                             
                             // 调用原始init方法
@@ -362,90 +358,10 @@ function updatePreview() {
     previewDocument.write(finalHtml);
     previewDocument.close();
 
-    // 隐藏加载指示器并显示预览完成通知
+    // 隐藏加载指示器
     previewFrame.onload = function() {
         loadingIndicator.classList.remove('active');
-        
-        // 如果包含图表代码，显示预览完成通知
-        if (hasChartCode && !hasShownPreviewNotification) {
-            showPreviewNotification(hasChartCode);
-            hasShownPreviewNotification = true;
-            
-            // 5分钟后重置通知状态，允许再次显示
-            setTimeout(() => {
-                hasShownPreviewNotification = false;
-            }, 300000); // 5分钟 = 300000毫秒
-        }
     };
-}
-
-// 显示预览完成通知
-function showPreviewNotification(hasChartCode) {
-    // 清除之前的通知定时器
-    if (previewNotificationTimeout) {
-        clearTimeout(previewNotificationTimeout);
-    }
-    
-    // 移除之前的通知（如果存在）
-    const existingNotification = document.querySelector('.preview-notification');
-    if (existingNotification) {
-        existingNotification.remove();
-    }
-    
-    // 创建通知元素
-    const notification = document.createElement('div');
-    notification.className = 'preview-notification';
-    
-    // 设置通知内容
-    let notificationContent = `
-        <div class="notification-header">
-            <span class="notification-title">预览加载完成</span>
-            <span class="notification-close">&times;</span>
-        </div>
-        <div class="notification-body">
-            <p>预览内容已成功加载。</p>
-    `;
-    
-    // 如果包含图表代码，添加额外提示
-    if (hasChartCode) {
-        notificationContent += `
-            <p>如果图表未正常显示，请尝试：</p>
-            <ol>
-                <li>更换浏览器打开（部分浏览器广告插件可能拦截图表组件）</li>
-                <li>如果仍然不显示，可以尝试更换国内组件源</li>
-            </ol>
-        `;
-    }
-    
-    notificationContent += `</div>`;
-    notification.innerHTML = notificationContent;
-    
-    // 添加通知到页面
-    document.body.appendChild(notification);
-    
-    // 添加关闭按钮事件
-    const closeButton = notification.querySelector('.notification-close');
-    if (closeButton) {
-        closeButton.addEventListener('click', () => {
-            notification.classList.add('closing');
-            setTimeout(() => {
-                notification.remove();
-            }, 300);
-        });
-    }
-    
-    // 显示通知
-    setTimeout(() => {
-        notification.classList.add('active');
-    }, 10);
-    
-    // 设置自动关闭
-    previewNotificationTimeout = setTimeout(() => {
-        notification.classList.add('closing');
-        setTimeout(() => {
-            notification.remove();
-        }, 300);
-    }, 8000); // 8秒后自动关闭
 }
 
 function saveContentToLocalStorage() {
