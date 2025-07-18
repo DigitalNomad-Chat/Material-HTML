@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中国CDN引用指南 - Material HTML</title>
+    <style>
+        body {
+            font-family: "Microsoft YaHei", "Segoe UI", Tahoma, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #1A73E8;
+            border-bottom: 2px solid #1A73E8;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #1A73E8;
+            margin-top: 30px;
+        }
+        h3 {
+            margin-top: 25px;
+            color: #0D47A1;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f7fd;
+            color: #0D47A1;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: Consolas, monospace;
+            font-size: 14px;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: Consolas, monospace;
+        }
+        .note {
+            background-color: #e8f4fd;
+            padding: 15px;
+            border-left: 5px solid #1A73E8;
+            margin: 20px 0;
+        }
+        .warning {
+            background-color: #fff8e6;
+            padding: 15px;
+            border-left: 5px solid #fbbc05;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>中国CDN引用指南</h1>
+    <p>为了确保在中国大陆地区能够快速访问各种前端库和框架，本指南整理了常用的中国CDN服务提供商，并提供了在HTML中引用它们的方法。</p>
+    <p>我们的预览系统已配置为支持所有这些CDN源，无需担心内容安全策略(CSP)的限制。</p>
+    
+    <div class="note">
+        <strong>提示：</strong> 当使用AI生成包含图表的HTML代码时，我们的系统会自动注入图表修复脚本，解决加载问题。但最佳实践是使用多CDN源引用策略，确保代码在任何环境中都能正常运行。
+    </div>
+    
+    <h2>主要CDN提供商</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>CDN名称</th>
+                <th>官方网站</th>
+                <th>特点</th>
+                <th>适用场景</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>BootCDN</td>
+                <td><a href="https://www.bootcdn.cn/" target="_blank">www.bootcdn.cn</a></td>
+                <td>稳定、速度快、资源全面</td>
+                <td>通用前端库、框架</td>
+            </tr>
+            <tr>
+                <td>Staticfile CDN</td>
+                <td><a href="https://staticfile.org/" target="_blank">staticfile.org</a></td>
+                <td>七牛云提供，稳定性高</td>
+                <td>通用前端库、框架</td>
+            </tr>
+            <tr>
+                <td>字节跳动静态资源库</td>
+                <td><a href="https://cdn.bytedance.com/" target="_blank">cdn.bytedance.com</a></td>
+                <td>字节跳动提供，国内速度快</td>
+                <td>通用前端库</td>
+            </tr>
+            <tr>
+                <td>百度静态资源库</td>
+                <td><a href="https://cdn.code.baidu.com/" target="_blank">cdn.code.baidu.com</a></td>
+                <td>百度提供，国内速度快</td>
+                <td>通用前端库</td>
+            </tr>
+            <tr>
+                <td>知乎静态资源库</td>
+                <td><a href="https://unpkg.zhimg.com/" target="_blank">unpkg.zhimg.com</a></td>
+                <td>知乎提供的UNPKG镜像</td>
+                <td>npm包前端资源</td>
+            </tr>
+            <tr>
+                <td>360奇舞团</td>
+                <td><a href="https://cdn.baomitu.com/" target="_blank">cdn.baomitu.com</a></td>
+                <td>360提供，稳定</td>
+                <td>通用前端库</td>
+            </tr>
+            <tr>
+                <td>jsDelivr</td>
+                <td><a href="https://www.jsdelivr.com/" target="_blank">www.jsdelivr.com</a></td>
+                <td>国际CDN，但在中国设有节点</td>
+                <td>npm包、GitHub项目</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <h2>ECharts多CDN源引用示例</h2>
+    <p>为了确保图表能够在任何环境下正常加载，建议使用多CDN源引用策略：</p>
+    
+    <h3>基础引用方法</h3>
+    <pre><code>&lt;!-- ECharts基础引用 --&gt;
+&lt;script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js"&gt;&lt;/script&gt;</code></pre>
+    
+    <h3>多CDN源引用策略（推荐）</h3>
+    <pre><code>&lt;!-- ECharts多CDN源引用策略 --&gt;
+&lt;script&gt;
+  function loadScript(src, callback) {
+    var script = document.createElement('script');
+    script.src = src;
+    script.onload = callback;
+    script.onerror = function() {
+      console.warn('加载失败：' + src);
+      if (sources.length > 0) loadFromNextSource();
+    };
+    document.head.appendChild(script);
+  }
+  
+  var sources = [
+    'https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js',
+    'https://cdn.staticfile.org/echarts/5.4.3/echarts.min.js',
+    'https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js',
+    'https://lf9-cdn-tos.bytecdntp.com/cdn/expire-1-M/echarts/5.4.3/echarts.min.js',
+    'https://unpkg.zhimg.com/echarts@5.4.3/dist/echarts.min.js'
+  ];
+  
+  function loadFromNextSource() {
+    if (sources.length === 0) {
+      console.error('所有CDN源均加载失败');
+      return;
+    }
+    var src = sources.shift();
+    loadScript(src, function() {
+      console.log('ECharts成功加载自: ' + src);
+      initChart(); // 初始化图表的函数
+    });
+  }
+  
+  function initChart() {
+    // 在此初始化所有图表
+    var myChart = echarts.init(document.getElementById('main'));
+    // 设置图表配置项和数据
+    var option = {
+      title: {
+        text: '图表示例'
+      },
+      tooltip: {},
+      legend: {
+        data: ['销量']
+      },
+      xAxis: {
+        data: ['衬衫', '羊毛衫', '雪纺衫', '裤子', '高跟鞋', '袜子']
+      },
+      yAxis: {},
+      series: [{
+        name: '销量',
+        type: 'bar',
+        data: [5, 20, 36, 10, 10, 20]
+      }]
+    };
+    myChart.setOption(option);
+  }
+  
+  // 开始加载
+  loadFromNextSource();
+&lt;/script&gt;</code></pre>
+    
+    <h3>图表容器示例</h3>
+    <pre><code>&lt;!-- 图表容器 --&gt;
+&lt;div id="main" style="width: 600px;height:400px;"&gt;&lt;/div&gt;</code></pre>
+    
+    <h2>常见图表库CDN引用</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>图表库</th>
+                <th>BootCDN</th>
+                <th>Staticfile</th>
+                <th>jsDelivr</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>ECharts</td>
+                <td><code>https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js</code></td>
+                <td><code>https://cdn.staticfile.org/echarts/5.4.3/echarts.min.js</code></td>
+                <td><code>https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js</code></td>
+            </tr>
+            <tr>
+                <td>Chart.js</td>
+                <td><code>https://cdn.bootcdn.net/ajax/libs/Chart.js/4.4.0/chart.umd.min.js</code></td>
+                <td><code>https://cdn.staticfile.org/Chart.js/4.4.0/chart.umd.min.js</code></td>
+                <td><code>https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js</code></td>
+            </tr>
+            <tr>
+                <td>Highcharts</td>
+                <td><code>https://cdn.bootcdn.net/ajax/libs/highcharts/11.2.0/highcharts.min.js</code></td>
+                <td><code>https://cdn.staticfile.org/highcharts/11.2.0/highcharts.min.js</code></td>
+                <td><code>https://cdn.jsdelivr.net/npm/highcharts@11.2.0/highcharts.js</code></td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <div class="warning">
+        <strong>注意：</strong> Highcharts 是商业软件，免费仅供个人学习、非商业用途使用。商业项目中使用需要购买授权。
+    </div>
+    
+    <h2>图表代码最佳实践</h2>
+    <ol>
+        <li>确保图表容器已存在并且有明确的宽高</li>
+        <li>使用多CDN源策略或在图表库加载完成后再初始化图表</li>
+        <li>避免在页面加载过程中立即初始化图表，而应等待文档完全加载</li>
+        <li>添加适当的错误处理机制，提高用户体验</li>
+        <li>避免使用内联样式，使用外部CSS更易于维护</li>
+    </ol>
+    
+    <h3>等待文档加载完成的示例</h3>
+    <pre><code>&lt;script&gt;
+  document.addEventListener('DOMContentLoaded', function() {
+    if (typeof echarts !== 'undefined') {
+      // 初始化图表
+      var myChart = echarts.init(document.getElementById('main'));
+      // 图表配置和数据设置
+      myChart.setOption({
+        // 配置项...
+      });
+    } else {
+      console.error('ECharts 库未加载');
+    }
+  });
+&lt;/script&gt;</code></pre>
+
+    <h2>图表自动修复系统</h2>
+    <p>本系统的预览功能已集成图表自动修复功能，可以自动：</p>
+    <ol>
+        <li>检测页面中的图表代码</li>
+        <li>自动加载所需的图表库</li>
+        <li>修复图表初始化顺序问题</li>
+        <li>提供多CDN源回退机制</li>
+        <li>解析并应用图表配置</li>
+        <li>在图表加载失败时提供友好的错误提示</li>
+    </ol>
+
+    <div class="note">
+        <strong>提示：</strong> 虽然我们的系统会尝试自动修复图表问题，但建议您在使用AI生成HTML代码时，提示AI使用上述最佳实践，以确保图表能够在任何环境中正常显示。
+    </div>
+
+    <hr>
+    <footer style="margin-top: 40px; text-align: center; font-size: 14px; color: #777;">
+        &copy; 2023 Material HTML 项目 | <a href="/">返回主页</a>
+    </footer>
+</body>
+</html> 

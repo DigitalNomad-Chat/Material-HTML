@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图表修复演示</title>
+    
+    <!-- 使用服务器允许的CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f0f5ff 0%, #e6f7ff 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+        }
+        
+        .container {
+            width: 95%;
+            max-width: 1200px;
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 60, 150, 0.15);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(to right, #096dd9, #1890ff);
+            color: white;
+            padding: 20px;
+        }
+        
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20px;
+            gap: 20px;
+        }
+        
+        #pieChart {
+            width: 100%;
+            height: 400px;
+        }
+        
+        h1 {
+            color: #1A73E8;
+            border-bottom: 2px solid #1A73E8;
+            padding-bottom: 5px;
+        }
+        
+        .description {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        
+        .error {
+            color: #d32f2f;
+            font-weight: bold;
+        }
+        
+        .success {
+            color: #388e3c;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>图表自动修复功能演示</h1>
+        </header>
+        
+        <div class="content">
+            <div class="description">
+                <p>这个页面展示了几种常见的ECharts图表加载错误情况，以及我们的图表自动修复系统如何处理这些错误。</p>
+                <p>即使图表代码存在问题，图表修复系统也能自动检测并修复，确保图表正常显示。</p>
+            </div>
+            
+            <h2>示例1：CDN加载失败的情况</h2>
+            <div class="container">
+                <div id="chart1" class="chart"></div>
+                <div class="description">
+                    <p><span class="error">错误：</span> 使用了无效的CDN链接</p>
+                    <p><span class="success">修复：</span> 系统检测到CDN加载失败，自动切换到备用CDN，然后初始化图表</p>
+                    <pre><code>// 错误的CDN引用
+&lt;script src="https://invalid-cdn.com/echarts.min.js"&gt;&lt;/script&gt;
+
+// 图表初始化代码
+var myChart1 = echarts.init(document.getElementById('chart1'));
+myChart1.setOption({...});</code></pre>
+                </div>
+            </div>
+
+            <h2>示例2：初始化顺序错误</h2>
+            <div class="container">
+                <div id="chart2" class="chart"></div>
+                <div class="description">
+                    <p><span class="error">错误：</span> 在ECharts库加载前就尝试初始化图表</p>
+                    <p><span class="success">修复：</span> 系统捕获错误，延迟图表初始化直到库加载完成</p>
+                    <pre><code>// 错误的初始化顺序
+var myChart2 = echarts.init(document.getElementById('chart2'));
+// 上面的代码会抛出"echarts is not defined"错误
+
+// 后面才加载ECharts库
+&lt;script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"&gt;&lt;/script&gt;</code></pre>
+                </div>
+            </div>
+
+            <h2>示例3：容器不存在</h2>
+            <div class="container">
+                <div id="chart3" class="chart"></div>
+                <div class="description">
+                    <p><span class="error">错误：</span> 尝试在不存在的DOM元素上初始化图表</p>
+                    <p><span class="success">修复：</span> 系统检测到目标元素不存在，寻找其他可用的图表容器</p>
+                    <pre><code>// 错误的容器ID
+var myChart3 = echarts.init(document.getElementById('non_existent_id'));
+// 上面的代码会因为无法找到容器元素而失败</code></pre>
+                </div>
+            </div>
+
+            <h2>示例4：配置错误</h2>
+            <div class="container">
+                <div id="chart4" class="chart"></div>
+                <div class="description">
+                    <p><span class="error">错误：</span> 提供了无效的图表配置</p>
+                    <p><span class="success">修复：</span> 系统检测到配置错误，应用默认配置</p>
+                    <pre><code>// 错误的配置对象
+var myChart4 = echarts.init(document.getElementById('chart4'));
+var invalidOption = {
+  // 缺少必要的配置项
+  title: { text: '有错误的图表' }
+  // 缺少结尾逗号，语法错误
+  series: [{ /* 配置不完整 */ }]
+};
+myChart4.setOption(invalidOption);</code></pre>
+                </div>
+            </div>
+
+            <h2>示例5：延迟加载问题</h2>
+            <div class="container">
+                <div id="chart5" class="chart"></div>
+                <div class="description">
+                    <p><span class="error">错误：</span> 在异步加载的内容中初始化图表</p>
+                    <p><span class="success">修复：</span> 系统监听DOM变化，检测到新添加的图表容器并初始化</p>
+                    <pre><code>// 延迟添加图表容器
+setTimeout(function() {
+  var div = document.createElement('div');
+  div.id = 'chart5_inner';
+  document.getElementById('chart5').appendChild(div);
+  
+  // 尝试初始化
+  var myChart5 = echarts.init(document.getElementById('chart5_inner'));
+  myChart5.setOption({...});
+}, 2000);</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 错误示例1：无效CDN引用 -->
+    <script src="https://invalid-cdn.com/echarts.min.js"></script>
+
+    <!-- 错误示例2：初始化顺序错误 -->
+    <script>
+        // 在库加载前初始化
+        try {
+            var myChart2 = echarts.init(document.getElementById('chart2'));
+            myChart2.setOption({
+                title: { text: '初始化顺序错误的图表' },
+                xAxis: { data: ['A', 'B', 'C', 'D', 'E'] },
+                yAxis: {},
+                series: [{ type: 'bar', data: [10, 20, 30, 40, 50] }]
+            });
+        } catch(e) {
+            console.error('预期的错误:', e);
+        }
+    </script>
+
+    <!-- 错误示例3：容器不存在 -->
+    <script>
+        // 加载正确的CDN，但在错误的容器上初始化
+        setTimeout(function() {
+            try {
+                var myChart3 = echarts.init(document.getElementById('non_existent_id'));
+                myChart3.setOption({
+                    title: { text: '容器不存在的图表' },
+                    series: [{ type: 'pie', data: [
+                        { name: 'A', value: 30 },
+                        { name: 'B', value: 70 }
+                    ]}]
+                });
+            } catch(e) {
+                console.error('预期的错误:', e);
+            }
+        }, 1000);
+    </script>
+
+    <!-- 错误示例4：配置错误 -->
+    <script>
+        // 加载ECharts，但提供错误的配置
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof echarts !== 'undefined') {
+                try {
+                    var myChart4 = echarts.init(document.getElementById('chart4'));
+                    var invalidOption = {
+                        title: { text: '配置错误的图表' },
+                        series: [{ type: 'line', data: [10, 20, 30, 40, 50] }]
+                    };
+                    myChart4.setOption(invalidOption);
+                } catch(e) {
+                    console.error('预期的错误:', e);
+                }
+            }
+        });
+    </script>
+    
+    <!-- 错误示例5：延迟加载问题 -->
+    <script>
+        // 延迟添加容器并初始化
+        setTimeout(function() {
+            var div = document.createElement('div');
+            div.id = 'chart5_inner';
+            div.style.width = '100%';
+            div.style.height = '100%';
+            document.getElementById('chart5').appendChild(div);
+            
+            // 尝试初始化
+            try {
+                if (typeof echarts !== 'undefined') {
+                    var myChart5 = echarts.init(document.getElementById('chart5_inner'));
+                    myChart5.setOption({
+                        title: { text: '延迟加载的图表' },
+                        tooltip: {},
+                        legend: { data: ['销量'] },
+                        xAxis: { data: ['衬衫', '羊毛衫', '雪纺衫', '裤子', '高跟鞋', '袜子'] },
+                        yAxis: {},
+                        series: [{
+                            name: '销量',
+                            type: 'bar',
+                            data: [5, 20, 36, 10, 10, 20]
+                        }]
+                    });
+                }
+            } catch(e) {
+                console.error('预期的错误:', e);
+            }
+        }, 2000);
+    </script>
+</body>
+</html> 

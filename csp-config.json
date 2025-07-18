@@ -1,0 +1,91 @@
+{
+  "additionalDomains": {
+    "script": [
+      "https://cdn.tailwindcss.com",
+      "https://unpkg.com",
+      "https://cdn.bootcdn.net",
+      "https://cdn.jsdelivr.net",
+      "https://cdnjs.cloudflare.com",
+      "https://lib.baomitu.com",
+      "https://cdn.staticfile.org",
+      "https://lf9-cdn-tos.bytecdntp.com",
+      "https://cdn.bootcss.com",
+      "https://code.jquery.com",
+      "https://ajax.googleapis.com",
+      "https://stackpath.bootstrapcdn.com",
+      "https://maxcdn.bootstrapcdn.com",
+      "https://cdn.datatables.net",
+      "https://fastly.jsdelivr.net"
+    ],
+    "style": [
+      "https://fonts.googleapis.com",
+      "https://cdn.tailwindcss.com",
+      "https://unpkg.com",
+      "https://cdn.bootcdn.net",
+      "https://cdn.jsdelivr.net",
+      "https://cdnjs.cloudflare.com",
+      "https://lib.baomitu.com",
+      "https://cdn.staticfile.org",
+      "https://lf9-cdn-tos.bytecdntp.com",
+      "https://cdn.bootcss.com",
+      "https://stackpath.bootstrapcdn.com",
+      "https://maxcdn.bootstrapcdn.com",
+      "https://fastly.jsdelivr.net"
+    ],
+    "font": [
+      "https://fonts.gstatic.com",
+      "https://at.alicdn.com",
+      "http://at.alicdn.com",
+      "https://cdn.bootcdn.net",
+      "https://cdn.jsdelivr.net",
+      "https://cdnjs.cloudflare.com",
+      "https://lib.baomitu.com",
+      "https://cdn.staticfile.org",
+      "https://lf9-cdn-tos.bytecdntp.com",
+      "https://cdn.bootcss.com",
+      "https://use.fontawesome.com",
+      "https://fonts.googleapis.com",
+      "https://fastly.jsdelivr.net"
+    ],
+    "image": [
+      "https://cdn.jsdelivr.net",
+      "https://unpkg.com",
+      "https://img.alicdn.com",
+      "https://gw.alipayobjects.com",
+      "https://cdn-images-1.medium.com",
+      "https://images.unsplash.com",
+      "https://i.imgur.com",
+      "https://picsum.photos",
+      "https://fastly.jsdelivr.net"
+    ],
+    "connect": [
+      "https://api.github.com",
+      "https://api.jsdelivr.com",
+      "https://unpkg.com",
+      "https://cdn.jsdelivr.net",
+      "https://fastly.jsdelivr.net"
+    ]
+  },
+  "dataTypes": {
+    "font": [
+      "data:application/x-font-woff2",
+      "data:application/font-woff2",
+      "data:application/font-woff",
+      "data:application/x-font-ttf",
+      "data:font/ttf",
+      "data:font/woff",
+      "data:font/woff2"
+    ],
+    "image": [
+      "data:image/svg+xml",
+      "data:image/png",
+      "data:image/jpeg",
+      "data:image/gif",
+      "data:image/webp"
+    ]
+  },
+  "development": {
+    "enabled": true,
+    "strict": false
+  }
+}

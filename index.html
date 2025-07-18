@@ -41,6 +41,33 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify-css.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.14.0/beautify.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://unpkg.com/qrcode-generator@1.4.4/qrcode.js"></script>
+    <script>
+        // 提供一个简单的QRCode接口，与其他QRCode库兼容
+        window.QRCode = function(element, options) {
+            if (!element || !options || !options.text) return;
+            
+            // 创建QR码
+            var qr = qrcode(0, 'L');
+            qr.addData(options.text);
+            qr.make();
+            
+            // 设置尺寸
+            var size = options.width || 128;
+            
+            // 渲染到元素
+            element.innerHTML = qr.createImgTag(2);
+            
+            // 调整图片尺寸
+            var img = element.querySelector('img');
+            if (img) {
+                img.width = size;
+                img.height = size;
+                img.style.display = 'block';
+                img.style.margin = '0 auto';
+            }
+        };
+    </script>
 </head>
 <body>
     <div class="app-bar">
@@ -115,10 +142,9 @@
     <div class="controls">
         <button class="material-button" onclick="loadExampleCode()">示例源代码</button>
         <button class="material-button raised" onclick="downloadCode('html')">下载HTML</button>
-        <button class="material-button raised" onclick="downloadCode('css')">下载CSS</button>
-        <button class="material-button raised" onclick="downloadCode('js')">下载JS</button>
         <button class="material-button raised primary" onclick="downloadAllCode()">下载全部 (ZIP)</button>
         <button class="material-button raised primary" onclick="openScalePreviewModal()">下载预览图</button>
+        <button class="material-button raised primary deploy-btn" onclick="openDeployModal()">部署网站</button>
     </div>
 
     <div id="scalePreviewModal" class="modal-overlay">
@@ -158,6 +184,69 @@
         </div>
     </div>
 
+    <div id="deployModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>部署您的网站</h2>
+                <button class="material-button icon-button modal-close-btn" onclick="closeDeployModal()" title="关闭">
+                    <i class="material-icons">close</i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="deployStep1" class="deploy-step active">
+                    <p>将您的网站部署到服务器，获取可分享的链接。</p>
+                    <p>您的网站将被上传到服务器，任何设备都可以通过链接访问。</p>
+                    <div class="deploy-options">
+                        <div class="form-group">
+                            <label for="siteName">提示信息:</label>
+                            <p class="small-text">点击"开始部署"后，系统将自动将您的网页上传至服务器，并生成可访问的链接。</p>
+                            <p class="small-text">上传的文件默认保留1天，超期后自动删除。链接生成后可复制分享或通过二维码在移动设备上访问。</p>
+                        </div>
+                    </div>
+                    <!-- 验证码容器将在这里动态添加 -->
+                </div>
+                <div id="deployStep2" class="deploy-step">
+                    <div class="deploy-progress">
+                        <div class="spinner"></div>
+                        <p>正在将网站上传到服务器，请稍候...</p>
+                    </div>
+                </div>
+                <div id="deployStep3" class="deploy-step">
+                    <div class="deploy-success">
+                        <i class="material-icons success-icon">check_circle</i>
+                        <h3>部署成功!</h3>
+                        <p>您的网站已成功部署。可以通过以下链接访问:</p>
+                        <div class="site-url-container">
+                            <input type="text" id="deployedSiteUrl" readonly class="form-input">
+                            <button class="material-button icon-button" onclick="copyDeployedUrl()" title="复制链接">
+                                <i class="material-icons">content_copy</i>
+                            </button>
+                        </div>
+                        <div class="qr-code-container">
+                            <p>扫描二维码访问:</p>
+                            <div id="qrcode"></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="deployStep4" class="deploy-step">
+                    <div class="deploy-error">
+                        <i class="material-icons error-icon">error</i>
+                        <h3>部署失败</h3>
+                        <p>抱歉，部署过程中出现错误:</p>
+                        <div class="error-message" id="deployErrorMessage"></div>
+                        <p>请稍后再试或检查您的网络连接。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="material-button" onclick="closeDeployModal()" id="deployCancel">取消</button>
+                <button class="material-button raised primary" onclick="deployWebsite()" id="deployAction">开始部署</button>
+                <button class="material-button raised" onclick="openDeployedSite()" id="openSiteButton" style="display: none;">访问网站</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="deploy.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
