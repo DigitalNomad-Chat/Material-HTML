@@ -900,7 +900,15 @@ _**User**_
 
 _**Assistant**_
 
+我将为您在csp-config.json文件中添加更多中国国内和国外常见的CDN源。这样可以确保您的网站能够顺利加载来自这些CDN的资源。
 
+---
+
+
+
+---
+
+让我重试一下，似乎出现了问题：
 
 ---
 
@@ -908,7 +916,155 @@ _**Assistant**_
 
 ---
 
+我已经成功更新了csp-config.json文件，添加了大量国内和国外常见的CDN源。以下是我添加的内容：
 
+### 新增的CDN源
+
+1. **脚本(script)来源**:
+   - unpkg.com
+   - cdn.bootcdn.net (国内)
+   - cdn.jsdelivr.net
+   - cdnjs.cloudflare.com
+   - lib.baomitu.com (国内)
+   - cdn.staticfile.org (国内)
+   - lf9-cdn-tos.bytecdntp.com (国内字节跳动CDN)
+   - cdn.bootcss.com (国内)
+   - code.jquery.com
+   - ajax.googleapis.com
+   - stackpath.bootstrapcdn.com
+   - maxcdn.bootstrapcdn.com
+   - cdn.datatables.net
+   - fastly.jsdelivr.net
+
+2. **样式(style)来源**:
+   - 添加了与脚本类似的CDN源
+
+3. **字体(font)来源**:
+   - 添加了主要的CDN源
+   - 特别添加了use.fontawesome.com用于Font Awesome图标
+
+4. **图片(image)来源**:
+   - cdn.jsdelivr.net
+   - unpkg.com
+   - img.alicdn.com (国内阿里图片)
+   - gw.alipayobjects.com (国内支付宝图片)
+   - cdn-images-1.medium.com
+   - images.unsplash.com
+   - i.imgur.com
+   - picsum.photos
+
+5. **连接(connect)来源**:
+   - api.github.com
+   - api.jsdelivr.com
+   - unpkg.com
+   - cdn.jsdelivr.net
+   - fastly.jsdelivr.net
+
+### 新增的数据类型
+
+1. **字体数据类型**:
+   - data:application/font-woff2
+   - data:application/font-woff
+   - data:application/x-font-ttf
+   - data:font/ttf
+   - data:font/woff
+   - data:font/woff2
+
+2. **图片数据类型**:
+   - data:image/svg+xml
+   - data:image/png
+   - data:image/jpeg
+   - data:image/gif
+   - data:image/webp
+
+这些更改将大大提高您网站的兼容性，允许从各种常用CDN加载资源。如果将来您遇到新的CSP限制问题，只需按照CSP-README.md中的说明，将新的域名添加到相应的部分即可。
+
+---
+
+_**User**_
+
+现在终于可以了！但是控制台还有一些报错，帮我先看下，是什么错误，先不改动代码：The source list for the Content Security Policy directive 'font-src' contains an invalid source: 'data:application/x-font-woff2'. It will be ignored.
+content.js:79 The source list for the Content Security Policy directive 'font-src' contains an invalid source: 'data:application/x-font-woff2'. It will be ignored.
+（匿名） @ content.js:79
+（匿名） @ content.js:79
+inject @ content.js:79
+r @ content.js:70
+（匿名） @ content.js:70
+jn @ content.js:15
+hs @ content.js:67
+（匿名） @ content.js:83
+then @ content.js:15
+（匿名） @ content.js:75
+Pt @ content.js:9
+t @ content.js:10
+e @ content.js:1
+i @ content.js:1
+（匿名） @ content.js:1
+n @ content.js:1
+（匿名） @ content.js:83
+（匿名） @ content.js:83
+（匿名） @ content.js:83
+显示另外 19 个框架
+收起
+（索引）:64 cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation
+（匿名） @ （索引）:64
+（匿名） @ （索引）:64
+site_1752844138255_qvw2hg3m.html:289 Refused to load the font 'data:application/x-font-woff2;charset=utf-8;base64,d09GMgABAAAAAANUAAsAAAAAB2wAAAMHAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHEIGVgCDFAqCMIIHATYCJAMQCwoABCAFhG0HRxtwBhEVnDvIfiTYthdSVtaJvphhRZ2kM8ED2dm/we5NcIKq+zSSD6GT0MElwDRAwBz6zc1QP+ULE/WOKbG//PQdaSkrXAjr56+pdwvxfHY2l8qwP4qkAU5wQFFNLbyBDMw3jN1E0BA3QwBOEuQRteo0aoVBA3oJQAzq37c7JuNHo42UQWBXTNRjxRIsjJwrbwGL+ffFG0oyILEUYGCzPrV7Ue259dwoj89DJ4ohmM4KGNNAAXlAg+hWae+AiuJ5FE5vNU0BsNEI5HP7ufH5mJLH9bBNwfb/eBIFwgagbgDK5ISC5xYmIOC5TUDCc4OgAD6GwfA0yVZAH5Uat75AImPCQ4NF93lHIvrs8Oau.../7eK4WvFr83X9nvdt9/K1rpSvY9WYfrvzMuzQaHJSfki82gkYbPiXBBezeva7hOtKcYQD4jugfqh6nb9ELVX7SqyKU5x/8hj/V95Z3Daz0zbg0AA+HiOey1ucdlukBDBI6C954nlUKoH+YIhDTGmgw6h1XjApAkzU4KgEnDIEP4A7xbApleGcUBIbwBCR+xIPCkIZrah5YuCgDG0NVcJKr7nQXoUagENoB5JgpgSDIXpAEcBYUQW7jmvoULCK8A5ugFDgR/LsseHYtnG6MStCC3iAY6h0yyUmkv9FPreK0iNP+yGMIQZ5k+dQLe+QphoyzL0QcOKYOntJ22LYEA1ONRpJKZCjT1FXdKDHURSc3DCkCWUDbgMAgPUdri1Ph82/Im7QUbijpsf8hNgr1g1wi64C/5H2nklu5ZjTzCkI4wGGkA56SFbUwTsBQ3a6GDJGoBkQHpVSp5rrKk+WV3QvkGRWAIToplNDCYjdsr5LDVlmCmOqsmGmJOfhKoggA' because it violates the following Content Security Policy directive: "font-src 'self' https://cdn.bootcdn.net https://fonts.gstatic.com".
+
+site_1752844138255_qvw2hg3m.html:289 Refused to load the font 'https://at.alicdn.com/t/font_1334179_yeeyzhmgwya.woff?t=1564991718045' because it violates the following Content Security Policy directive: "font-src 'self' https://cdn.bootcdn.net https://fonts.gstatic.com".
+
+site_1752844138255_qvw2hg3m.html:289 Refused to load the font 'https://at.alicdn.com/t/font_1334179_yeeyzhmgwya.ttf?t=1564991718045' because it violates the following Content Security Policy directive: "font-src 'self' https://cdn.bootcdn.net https://fonts.gstatic.com".
+
+site_1752844138255_qvw2hg3m.html:1 [Deprecation] Listener added for a synchronous 'DOMNodeInsertedIntoDocument' DOM Mutation Event. This event type is deprecated (https://w3c.github.io/uievents/#legacy-event-types) and work is underway to remove it from this browser. Usage of this event listener will cause performance issues today, and represents a risk of future incompatibility. Consider using MutationObserver instead.
+page.js:1 page.js ReaderArticleFinder {contentDocument: document, didSearchForArticleNode: false, article: null, didSearchForExtraArticleNode: false, extraArticle: null, …} Readability ƒ Readability(e,t){if(t&&t.documentElement)e=t,t=arguments[2];else if(!e||!e.documentElement)throw new Error("First argument to Readability constructor should be a document object.");if(t=t||{},this._d…
+page.js:1 discuz_cache
+page.js:1 skip
+VM293:1 api ready
+api.js:1 injject
+
+---
+
+_**Assistant**_
+
+我看到了控制台中的几个错误信息，主要集中在CSP策略方面。让我分析一下这些错误：
+
+1. **关于data:application/x-font-woff2的错误**：
+   ```
+   The source list for the Content Security Policy directive 'font-src' contains an invalid source: 'data:application/x-font-woff2'. It will be ignored.
+   ```
+   这表明在CSP策略中，`data:application/x-font-woff2`不是一个有效的font-src源。CSP规范要求对于data URI，应该只使用`data:`而不是指定具体的MIME类型。
+
+2. **字体加载被拒绝**：
+   ```
+   Refused to load the font 'data:application/x-font-woff2;charset=utf-8;base64,...' because it violates the following Content Security Policy directive: "font-src 'self' https://cdn.bootcdn.net https://fonts.gstatic.com".
+   ```
+   ```
+   Refused to load the font 'https://at.alicdn.com/t/font_1334179_yeeyzhmgwya.woff?t=1564991718045' because it violates the following Content Security Policy directive: "font-src 'self' https://cdn.bootcdn.net https://fonts.gstatic.com".
+   ```
+   
+   这些错误表明虽然我们在csp-config.json中添加了这些域名和数据类型，但实际应用的CSP策略中并没有包含它们。这可能是因为：
+   
+   - 配置文件没有被正确加载
+   - 配置文件的更改没有生效
+   - 服务器端的CSP生成逻辑没有正确使用配置文件中的设置
+
+3. **Tailwind CSS警告**：
+   ```
+   cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation
+   ```
+   这只是一个警告，不是错误。它建议在生产环境中不要使用cdn.tailwindcss.com，而是应该安装Tailwind CSS作为PostCSS插件或使用Tailwind CLI。
+
+4. **DOM Mutation Event警告**：
+   ```
+   [Deprecation] Listener added for a synchronous 'DOMNodeInsertedIntoDocument' DOM Mutation Event.
+   ```
+   这是一个关于使用已弃用DOM API的警告，与CSP无关。
+
+主要问题是虽然我们更新了csp-config.json文件，但这些更改似乎没有反映在实际应用的CSP策略中。从错误信息来看，实际应用的font-src策略只包含了'self'、https://cdn.bootcdn.net和https://fonts.gstatic.com，而没有包含我们添加的其他域名和data URI。
+
+这可能是因为服务器没有重启，或者配置文件的热重载功能没有正常工作。另一个可能是buildCSP函数中对配置文件的解析有问题，没有正确地将所有配置项应用到CSP策略中。
+
+如果您想解决这个问题，我们可以检查服务器日志，看看配置文件是否被正确加载，或者尝试重启服务器使配置生效。
 
 ---
 
